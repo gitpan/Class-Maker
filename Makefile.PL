@@ -14,7 +14,11 @@ WriteMakefile(
     	IO::Extended => 0,
 
        Error       =>  0.15,
-
+	   
+		Algorithm::FastPermute => 0.05,
+		
+		Array::Compare	=> 1.03,
+		
     }, # e.g., Module::Name => 1.1
 
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005

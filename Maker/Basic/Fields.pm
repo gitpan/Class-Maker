@@ -31,6 +31,17 @@ sub persistance
 	no strict 'refs';
 }
 
+       # simply do nothing and store it for Data::Type::Guard
+
+sub types
+{
+	my $args = shift;
+
+	my $reflex = shift;
+
+	no strict 'refs';
+}
+
 sub isa
 {
 	my $args = shift;

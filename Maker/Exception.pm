@@ -1,6 +1,6 @@
 package Class::Maker::Exception;
 		
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 use Error qw(:try);
 
@@ -24,7 +24,14 @@ use Exporter;
 
 			local $Error::Depth = $Error::Depth + 1;
 
-			@$this{ qw(package file line) } = caller( $Error::Depth );
+			my %h;
+			
+			@h{ qw( package file line ) } = caller( $Error::Depth );
+			
+			foreach ( qw( package file line ) )
+			{				
+				$this->$_( $h{$_} ) unless $this->$_();
+			}
 			
 	return $this;
 	}

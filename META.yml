@@ -1,0 +1,15 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Class-Maker
+version:      0.05.18
+version_from: Maker.pm
+installdirs:  site
+requires:
+    Algorithm::FastPermute:        0.05
+    Array::Compare:                1.03
+    Data::Dumper:                  0
+    Error:                         0.15
+    IO::Extended:                  0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.16

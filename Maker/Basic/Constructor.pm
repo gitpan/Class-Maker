@@ -57,8 +57,17 @@ sub new
 
 			# convert constructor arguments to accessor/method calls
 
-		my %args = @_;
+		my @args = @_;
+		
+		my %args;
+		
+		if( $class->can( '_arginit' ) )
+		{
+			$class->_arginit( \@args );
+		}
 
+		%args = @args;
+		
 		my $args = \%args;
 
 		_filter_argnames( $args );

@@ -6,127 +6,127 @@
 #
 # it and/or modify it under the same terms as Perl itself.
 
-require 5.005_62; use strict; use warnings;
-
 package Class::Maker;
 
-our $VERSION = '0.5.14';
-
-use Class::Maker::Basic::Handler::Attributes;
-
-use Class::Maker::Basic::Fields;
-
-use Exporter;
-
-use subs qw(class);
-
-our $DEBUG = 0;
-
-our $TRACE = ( \*STDOUT, \*STDERR )[ ($ENV{CLASSMAKER_TRACE}||2) - 1 ];
-
-our %EXPORT_TAGS = ( 'all' => [ qw(class) ] );
-
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-our @EXPORT = ();
-
-our @ISA = qw( Exporter );
-
-our $pkg = '<undefined class>';
-
-our $cpkg = $pkg;
-
-our $explicit = 0;
-
-# Preloaded methods go here.
-
-sub import
-{
-	Class::Maker->export_to_level( 1, @_ );
-}
-
-sub class
-{
-	class_import( scalar caller, @_ );
-}
-
-sub class_import
-{
-		# $class is the caller package
-
-	my ( $class, @args ) = @_;
-
-	return unless @args;
-
-		# construct the destination package for the classes:
-		#
-		#	- we create the class within the current package (default)
-		#	- or create it in the current package
-		#	- or when starting with 'main::' or '::' we create it with the main package
-
-	unless( ref $args[0]  )
+	require 5.005_62; use strict; use warnings;
+	
+	our $VERSION = '0.05.18';
+	
+	use Class::Maker::Basic::Handler::Attributes;
+	
+	use Class::Maker::Basic::Fields;
+	
+	use Exporter;
+	
+	use subs qw(class);
+	
+	our $DEBUG = 0;
+	
+	our $TRACE = ( \*STDOUT, \*STDERR )[ ($ENV{CLASSMAKER_TRACE}||2) - 1 ];
+	
+	our %EXPORT_TAGS = ( 'all' => [ qw(class) ] );
+	
+	our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+	
+	our @EXPORT = ();
+	
+	our @ISA = qw( Exporter );
+	
+	our $pkg = '<undefined class>';
+	
+	our $cpkg = $pkg;
+	
+	our $explicit = 0;
+	
+	# Preloaded methods go here.
+	
+	sub import
 	{
-		$pkg = ( $args[0] =~ s/^(?:main)?::// ) ? $args[0] : $class.'::'.$args[0];
+		Class::Maker->export_to_level( 1, @_ );
 	}
-	else
+	
+	sub class
 	{
-			# We had no explicit destination package, so create the class in the current package
-
-		$pkg = $class;
+		class_import( scalar caller, @_ );
 	}
-
-		#remember caller package
-
-	$cpkg = $class;
-
-		# init class 'cause somebody could give an empty parameter
-		# list for abstract classes
-
-	Class::Maker::Basic::Fields::isa( [] );
-
-	Class::Maker::Basic::Fields::configure( { ctor => 'new', dtor => 'delete' } );
-
-	foreach my $arg ( @args )
+	
+	sub class_import
 	{
-		if( ref($arg) eq 'HASH' )
+			# $class is the caller package
+	
+		my ( $class, @args ) = @_;
+	
+		return unless @args;
+	
+			# construct the destination package for the classes:
+			#
+			#	- we create the class within the current package (default)
+			#	- or create it in the current package
+			#	- or when starting with 'main::' or '::' we create it with the main package
+	
+		unless( ref $args[0]  )
 		{
-			no strict 'refs';
-
-			Class::Maker::Reflection::install( $arg );
-
-			foreach my $func ( sort { $b cmp $a } keys %$arg )
+			$pkg = ( $args[0] =~ s/^(?:main)?::// ) ? $args[0] : $class.'::'.$args[0];
+		}
+		else
+		{
+				# We had no explicit destination package, so create the class in the current package
+	
+			$pkg = $class;
+		}
+	
+			#remember caller package
+	
+		$cpkg = $class;
+	
+			# init class 'cause somebody could give an empty parameter
+			# list for abstract classes
+	
+		Class::Maker::Basic::Fields::isa( [] );
+	
+		Class::Maker::Basic::Fields::configure( { ctor => 'new', dtor => 'delete' } );
+	
+		foreach my $arg ( @args )
+		{
+			if( ref($arg) eq 'HASH' )
 			{
-					# fields for the class attributes/isa/configure/..
-
-				"Class::Maker::Basic::Fields::${func}"->( $arg->{$func}, $arg );
+				no strict 'refs';
+	
+				Class::Maker::Reflection::install( $arg );
+	
+				foreach my $func ( sort { $b cmp $a } keys %$arg )
+				{
+						# fields for the class attributes/isa/configure/..
+	
+					"Class::Maker::Basic::Fields::${func}"->( $arg->{$func}, $arg );
+				}
 			}
 		}
 	}
-}
-
-sub _make_method
-{
-	no strict 'refs';
-
-	my $type = shift;
-
-	my $name = shift;
-
-		$Class::Maker::Basic::Handler::Attributes::name = $explicit ? "${pkg}::$name" : $name;
-
+	
+	sub _make_method
+	{
 		no strict 'refs';
+	
+		my $type = shift;
+	
+		my $name = shift;
+	
+			$Class::Maker::Basic::Handler::Attributes::name = $explicit ? "${pkg}::$name" : $name;
+	
+			no strict 'refs';
+	
+			if( *{ "Class::Maker::Basic::Handler::Attributes::${type}" }{CODE} )
+			{
+				return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->$type;
+			}
+	
+	return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->default;
+	}
 
-		if( *{ "Class::Maker::Basic::Handler::Attributes::${type}" }{CODE} )
-		{
-			return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->$type;
-		}
-
-return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->default;
-}
-
-	#
-	# Reflection
-	#
+#
+# Reflection
+#
 
 package Class::Maker::Reflex;		# returned by Class::Maker::Reflection::reflect
 
@@ -148,232 +148,232 @@ package Class::Maker::Reflex;		# returned by Class::Maker::Reflection::reflect
 
 package Class::Maker::Reflection;
 
-our $DEBUG = $Class::Maker::DEBUG;
-
-	# DEEP : Whether reflect should traverse the @ISA tree and return all parent reflex's
-
-our $DEEP = 0;
-
-our $DEFINITION = 'CLASS';
-
-sub _get_definition
-{
-	my $class = shift;
-
-		no warnings;
-
-		no strict 'refs';
-
-return \${ "${class}::${DEFINITION}" };
-}
-
-sub _get_isa
-{
-	no strict 'refs';
-
-return @{ $_[0].'::ISA'};
-}
-
-sub install
-{
-	${ Class::Maker::Reflection::_get_definition( $pkg ) } = $_[0];
-}
-
-sub reflect
-{
-	my $class = ref( $_[0] ) || $_[0] || die;
-
-		my $rfx = bless {  name => $class  }, 'Class::Maker::Reflex';
-
-			# - First get the "${$DEFINITION}" href containing the class definition
-			# - find the functions of that class declerated with ': method'
-			# - catch up the parent class reflection if DEEP is activated
-			# - update "${$DEFINITION}"->{isa} with its real @ISA
-
-		$rfx->{def} = ${ Class::Maker::Reflection::_get_definition( $class ) };
-
-		$rfx->{methods} = find_methods( $rfx->{name} );
-
-		no strict 'refs';
-
-		if( $DEEP && defined *{ "${class}::ISA" }{ARRAY} )
-		{
-			$rfx->{isa} = \@{ *{ "${class}::ISA" }{ARRAY} };
-
-			$rfx->{parents}->{$_} = reflect( $_ ) for @{ $rfx->{isa} };
-		}
-
-return $rfx;
-}
-
-sub classes
-{
-	no strict 'refs';
-
-	my @found;
-
-	my $path = shift if @_ > 1;
-
-	foreach my $pkg ( @_ )
+	our $DEBUG = $Class::Maker::DEBUG;
+	
+		# DEEP : Whether reflect should traverse the @ISA tree and return all parent reflex's
+	
+	our $DEEP = 0;
+	
+	our $DEFINITION = 'CLASS';
+	
+	sub _get_definition
 	{
-		next unless $pkg =~ /::$/;
-
-		$path .= $pkg;
-
-		if( $path =~ /(.*)::$/ )
-		{
-			my $clean_path = $1;
-
-			if( $path ne 'main::' )
-			{
-				if( my $href_cls = reflect( $clean_path ) )
-				{
-					push @found, { $clean_path => $href_cls };
-				}
-			}
-
-			foreach my $symbol ( sort keys %{$path} )
-			{
-				if( $symbol =~ /::$/ && $symbol ne 'main::' )
-				{
-					push @found,  classes( $path, $symbol );
-				}
-			}
-		}
+		my $class = shift;
+	
+			no warnings;
+	
+			no strict 'refs';
+	
+	return \${ "${class}::".$Class::Maker::Reflection::DEFINITION };
 	}
-
-return @found;
-}
-
-use attributes;
-
-sub find_methods
-{
-	my $class = shift;
-
-		my $methods = [];
-
+	
+	sub _get_isa
+	{
 		no strict 'refs';
-
-		foreach my $pkg ( $class.'::' )
-		{
-			foreach ( sort keys %{$pkg} )
+	
+	return @{ $_[0].'::ISA'};
+	}
+	
+	sub install
+	{
+		${ Class::Maker::Reflection::_get_definition( $pkg ) } = $_[0];
+	}
+	
+	sub reflect
+	{
+		my $class = ref( $_[0] ) || $_[0] || die;
+	
+			my $rfx = bless {  name => $class  }, 'Class::Maker::Reflex';
+	
+				# - First get the "${$DEFINITION}" href containing the class definition
+				# - find the functions of that class declerated with ': method'
+				# - catch up the parent class reflection if DEEP is activated
+				# - update "${$DEFINITION}"->{isa} with its real @ISA
+	
+			$rfx->{def} = ${ Class::Maker::Reflection::_get_definition( $class ) };
+	
+			$rfx->{methods} = find_methods( $rfx->{name} );
+	
+			no strict 'refs';
+	
+			if( $DEEP && defined *{ "${class}::ISA" }{ARRAY} )
 			{
-				unless( /::$/ )
+				$rfx->{isa} = \@{ *{ "${class}::ISA" }{ARRAY} };
+	
+				$rfx->{parents}->{$_} = reflect( $_ ) for @{ $rfx->{isa} };
+			}
+	
+	return $rfx;
+	}
+	
+	sub classes
+	{
+		no strict 'refs';
+	
+		my @found;
+	
+		my $path = shift if @_ > 1;
+	
+		foreach my $pkg ( @_ )
+		{
+			next unless $pkg =~ /::$/;
+	
+			$path .= $pkg;
+	
+			if( $path =~ /(.*)::$/ )
+			{
+				my $clean_path = $1;
+	
+				if( $path ne 'main::' )
 				{
-					if( defined *{ "$pkg$_" }{CODE} )
+					if( my $href_cls = reflect( $clean_path ) )
 					{
-						if( my $type = attributes::get( \&{ "$pkg$_" } ) )
-						{
-							push @$methods, "$_" if $type =~ /method/i;
-						}
+						push @found, { $clean_path => $href_cls };
+					}
+				}
+	
+				foreach my $symbol ( sort keys %{$path} )
+				{
+					if( $symbol =~ /::$/ && $symbol ne 'main::' )
+					{
+						push @found,  classes( $path, $symbol );
 					}
 				}
 			}
 		}
-
-return $methods;
-}
-
-sub find
-{
-	my %request = @_;
-
-	my @result;
-
-			# parsing all references in a package (via symbol table)
-
-		while( my ( $where, $what ) = each %request )
-		{
+	
+	return @found;
+	}
+	
+	use attributes;
+	
+	sub find_methods
+	{
+		my $class = shift;
+	
+			my $methods = [];
+	
 			no strict 'refs';
-
-			foreach my $pkg ( $where.'::' )
+	
+			foreach my $pkg ( $class.'::' )
 			{
-				print $Class::Maker::TRACE "Searching in package '$where' for '$what' instances\n" if $DEBUG;
-
 				foreach ( sort keys %{$pkg} )
 				{
 					unless( /::$/ )
 					{
-						if( defined *{ "$pkg$_" } )
+						if( defined *{ "$pkg$_" }{CODE} )
 						{
-							my $sref = \${ "$pkg$_" };
-
-							if( ref( $sref ) eq 'REF' )
+							if( my $type = attributes::get( \&{ "$pkg$_" } ) )
 							{
-								my $type = ref( $$sref );
-
-								printf $Class::Maker::TRACE "%20s %10s %s isa($what)\n", '$'.$_, $type if $$sref->isa( $what ) and $DEBUG;
-
-								push @result, $$sref;
+								push @$methods, "$_" if $type =~ /method/i;
 							}
 						}
 					}
 				}
 			}
+	
+	return $methods;
+	}
+	
+	sub find
+	{
+		my %request = @_;
+	
+		my @result;
+	
+				# parsing all references in a package (via symbol table)
+	
+			while( my ( $where, $what ) = each %request )
+			{
+				no strict 'refs';
+	
+				foreach my $pkg ( $where.'::' )
+				{
+					print $Class::Maker::TRACE "Searching in package '$where' for '$what' instances\n" if $DEBUG;
+	
+					foreach ( sort keys %{$pkg} )
+					{
+						unless( /::$/ )
+						{
+							if( defined *{ "$pkg$_" } )
+							{
+								my $sref = \${ "$pkg$_" };
+	
+								if( ref( $sref ) eq 'REF' )
+								{
+									my $type = ref( $$sref );
+	
+									printf $Class::Maker::TRACE "%20s %10s %s isa($what)\n", '$'.$_, $type if $$sref->isa( $what ) and $DEBUG;
+	
+									push @result, $$sref;
+								}
+							}
+						}
+					}
+				}
+			}
+	
+	return \@result;
+	}
+	
+		# helpers
+	
+	sub _isa_tree
+	{
+		my $list = shift;
+	
+		my $level = shift;
+	
+		for my $child ( @_ )
+		{
+			my @parents = Class::Maker::Reflection::_get_isa( $child );
+	
+			$level++;
+	
+			push @{ $list->{$level} }, $child;
+	
+			warn sprintf "\@%s::ISA = qw(%s);",$child , join( ' ', @parents ) if $Class::Maker::DEBUG;
+	
+			_isa_tree( $list, $level, @parents );
+	
+			$level--;
 		}
-
-return \@result;
-}
-
-	# helpers
-
-sub _isa_tree
-{
-	my $list = shift;
-
-	my $level = shift;
-
-	for my $child ( @_ )
-	{
-		my @parents = Class::Maker::Reflection::_get_isa( $child );
-
-		$level++;
-
-		push @{ $list->{$level} }, $child;
-
-		warn sprintf "\@%s::ISA = qw(%s);",$child , join( ' ', @parents ) if $Class::Maker::DEBUG;
-
-		_isa_tree( $list, $level, @parents );
-
-		$level--;
 	}
-}
-
-	# returns the isa tree sorted by level of recursion
-
-	# 5 -> Exporter
-	# 4 -> Object::Debugable
-	# 3 -> Person, Exporter
-	# 2 -> Employee, Exporter, Object::Debugable
-	# 1 -> Doctor
-
-sub isa_tree
-{
-	my $list = {};
-
-	_isa_tree( $list, 0, @_ );
-
-return $list;
-}
-
-	# returns the isa tree in a planar list (for con-/destructor queue's)
-
-sub inheritance_isa
-{
-	warn sprintf "SCANNING ISA FOR (%s);", join( ', ', @_ ) if $Class::Maker::DEBUG;
-
-	my $construct_list = isa_tree( @_ );
-
-	my @ALL;
-
-	foreach my $level ( sort { $b <=> $a } keys %$construct_list )
+	
+		# returns the isa tree sorted by level of recursion
+	
+		# 5 -> Exporter
+		# 4 -> Object::Debugable
+		# 3 -> Person, Exporter
+		# 2 -> Employee, Exporter, Object::Debugable
+		# 1 -> Doctor
+	
+	sub isa_tree
 	{
-		push @ALL, @{ $construct_list->{$level} };
+		my $list = {};
+	
+		_isa_tree( $list, 0, @_ );
+	
+	return $list;
 	}
-
-return \@ALL;
-}
+	
+		# returns the isa tree in a planar list (for con-/destructor queue's)
+	
+	sub inheritance_isa
+	{
+		warn sprintf "SCANNING ISA FOR (%s);", join( ', ', @_ ) if $Class::Maker::DEBUG;
+	
+		my $construct_list = isa_tree( @_ );
+	
+		my @ALL;
+	
+		foreach my $level ( sort { $b <=> $a } keys %$construct_list )
+		{
+			push @ALL, @{ $construct_list->{$level} };
+		}
+	
+	return \@ALL;
+	}
 
 1;
 

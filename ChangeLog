@@ -157,3 +157,31 @@ Revision history for Perl extension Class::Maker.
 
    - Class::Maker::Exception added. See pod.
 
+0.5.15
+
+	* package Class::Maker::Basic::Handler::Attributes
+		-- now handlers are using "Delegation" to methods
+			- get() 
+			- set() 
+			- init()   called from 'new' (or 'default' field) constructor
+			- reset() 
+			
+		This now eases the interception via hooks and also makes things more transparent.	
+
+		Example exploit of that:
+		
+		use Hook::Heckle;
+		
+		foreach my $method ( qw(max text) )
+		{
+			Hook::Heckle->new( victim => $method, post => sub { my $this = shift; print "Model is informing observers of '$method' change\n" and $_[0]->notify_observers( 'update', $method ) if $_[1]; @_ }, sub { @_ } );
+		}
+
+	* class->_arginit (if exists) is called before anything with @_ happens to the constructor ('new').	
+		-- it received \@_ and should do changes in place.
+
+0.5.17
+
+	* Bug in lvalue attribute handler (default) fixed
+
+		because C<return $val; this doesn't work, don't say "return">
