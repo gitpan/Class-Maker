@@ -1,116 +1,109 @@
-BEGIN
-{
-	$| = 1;
+# Before `make install' is performed this script should be runnable with
+# `make test'. After `make install' it should work as `perl test.pl'
 
-	if( exists $ENV{MOD_NOTEST} )
-	{
-		die "DEBUG MODE OFF";
-	}
+#########################
 
-	print "1..1\n";
-}
+# change 'tests => 1' to 'tests => last_test_to_print';
 
-use strict;
+use Test;
+
+BEGIN { plan tests => 1 };
 
 use Data::Dumper;
 
-use IO::Extended qw(:all);
-
 use Class::Maker;
 
-use Class::Maker::Examples;
+ok(1); # If we made it this far, we're ok.
 
-	println "\nFinishing class definition.\n\n\nStarting testing\n";
+#########################
+# Insert your test code below, the Test module is use()ed here so read
+# its man page ( perldoc Test ) for help writing this test script.
 
-	ind 1;
 
-	println "\nInstantiate Human...";
-
-		# Object Human
-
-	my $human = new Human(
-
-		firstname => 'Adam',
-
-		lastname => 'NoName',
-
-		eye_color => 'green',
-
-		hair_color => 'black',
-
-		nicknames => [qw( TheDuke JohnDoe )],
-
-		contacts => { Peter => 'peter@anywhere.de' },
-
-		telefon => { Phone => '01230230', Fax => '0237923487' },
-	);
-
-	push @{ $human->nicknames }, qw( Maniac TwistedBrain );
-
-	$human->telefon->{Mobil} = '0123823727';
-
-	foreach my $key ( keys %{ $human->telefon } )
+Class::Maker::class 'TestMe',
+{
+	public =>
 	{
-		::ind 1;
-
-		::printfln "Telefon: %20s (%s)\n", $key, $human->telefon->{$key};
+		string => [qw( one two three four )],
 	}
+};
 
-	$human->firstname = 'Adam!';
+	my $tm = TestMe->new;
 
-	$human->_driverslicense( '12-12-80' );
+	$tm->one( 1 );
+	$tm->two( 2 );
+	$tm->three( 3 );
+	$tm->four( 4 );
 
-	println "Instantiate Employee...";
+	print "FIRST: \n";
 
-		# Object Employee
+	print Dumper [ $tm ];
 
-	my $employee = new Employee(
+	$Class::Maker::Basic::Fields::DEBUG = 1;
 
-		firstname => 'Fred',
+{
+	package Human::Role;
 
-		lastname => 'Firestone',
-
-		eye_color => 'brown',
-
-		hair_color => 'black',
-
-		income => '100 rockdollar/year',
-
-		payment => 'monthly',
-
-		position => 'assistant',
-
-		friends => [qw( Peter Lora John )],
-	);
-
-	$employee->eye_color = 'something like '.$employee->eye_color;
-
-	$employee->Employee::firstname( 'employee_name' );
-
-	#debugSymbols( 'main::Human::' );
-
-	$employee->__dummy1;
-
-	#$employee->dummy1;
-
-	foreach my $class ( qw( Human Employee Customer User ) )
+	Class::Maker::class
 	{
-		print "\n$class methods: ", join( ', ', @{ reflect( $class, 'methods' ) } ), "\n" if reflect( $class, 'methods' );
-	}
+		public =>
+		{
+			string => [qw( name desc purpose )],
+		},
 
-	println "human eyecolor: ", $human->hair_color;
+		default =>
+		{
+			name => 'Role Name',
 
-	foreach my $class ( qw( Human Employee Customer User ) )
+			desc => 'Role Descrition',
+		},
+	};
+
+	sub anew : method
 	{
-		print Dumper reflect( $class );
+		my $this = shift;
+
+		return $this->new( name => $_[0] );
 	}
+}
 
-	$Class::Maker::Basic::Constructor::DEBUG = 1;
+{
+	package Human::Role::Simple;
 
-	printfln "TRAVERSING ISA: %s", join( ', ', @{ Class::Maker::Basic::Constructor::inheritance_isa( 'Employee' ) } );
+	@ISA = qw(Human::Role);
 
-	our $loaded = 1;
+	sub new : method
+	{
+		my $this = shift;
 
-	print "ok 1\n";
+		return $this->SUPER::new( name => $_[0] );
+	}
+}
 
-END { print "not ok 1\n" unless $loaded; }
+	our $myrole = Human::Role->new( name => 'dba', desc => 'Database Administrator' );
+
+	print Dumper $myrole;
+
+	$Class::Maker::DEBUG = 0;
+
+	our $role = Human::Role->anew( 'dba' );
+
+	our $role_simple = Human::Role::Simple->new( 'admin' );
+
+	my $all = Class::Maker::Reflection::find( 'main' => 'Human::Role' );
+
+	print Dumper $all, $role;
+
+	print "--" x 40, "\n";
+
+	print Dumper 'Human::Role reflex', Class::Maker::Reflection::reflect( 'Human::Role' );
+
+	#print Dumper 'Human::Role::Simple reflex', map { reflect( $_ ) } @{ *{ 'Human::Role::Simple::ISA' }{ARRAY} };
+
+	$Class::Maker::Reflection::DEEP = 1;
+
+	print "--" x 40, "\n";
+
+	print Dumper 'Human::Role::Simple reflex', Class::Maker::Reflection::reflect( 'Human::Role::Simple' );
+
+	#class User => qw/Human/, qw( string<name firstname title> date<birthday> email<email> array<friends> hash<synonymes> );

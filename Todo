@@ -4,7 +4,8 @@ todo
 
 	isa, can etc. when needed ("deep reflection").
 }
-done
+
+todo
 {
 	class configure should have option 'explicit' for turning object hash
 
@@ -62,7 +63,7 @@ todo
 }
 done
 {
-	now all prefixed 'minus' signes are ignored for the keys like -attrib, --attrib, ...
+	now all prefixed '-' or '+' signes are ignored for the keys like -attrib, --attrib, ...
 }
 
 todo
@@ -176,11 +177,11 @@ done
 todo
 {
 	- adding a "classes" function which returns all reflectable classes from the
-	symboltable (starting at a package of my choice)
+	symboltable (descending from a start-package of my choice)
 }
 done
 {
-	- added to Class::Maker::reflection
+	- added to Class::Maker::Reflection
 
 	- export: use Class::Maker qw(classes);
 
@@ -236,6 +237,10 @@ todo
 	This bracket-private feature should work only in public and
 	attributes fields.
 }
+done
+{
+	now <method> means private.
+}
 
 todo
 {
@@ -243,4 +248,198 @@ todo
 	configure->{private}->{prefix},
 
 	Shouldn't be changed on a per-object basis => Should make them global !
+}
+done
+{
+	done. $Class::Maker::explicit
+}
+
+todo
+{
+	Translators:
+	------------
+
+	The default new constructor is currently only accepting hash parameters:
+
+		Now: ->new( one => 1, two => 2 );
+
+		Future: ->new( 1, 2 );
+
+	Comment: the _preinit function takes a hashref of the arguments and this is a point where
+	translations of the arguments may happen.
+	Problem: How would we now how to assign the parameters to the accessors (especially the parent
+	accessors) ???
+
+	Is this confliciting with our current MI implementation ? ==> NO, because the array-params should
+	be converted to hash params.
+
+	Solution: I think there should be a parameter translation engine !
+
+	ie. ->new( 1, 2 ) should be translated to ->new( one => 1, two => 2 )
+
+	But how ?? => _preinit should be given an aref instead of an href !
+}
+done
+{
+	<<<<<<<<<<<<<<< ALL WAS NONSENSE: THERE WAS A VERY SIMPLE SOLUTION >>>>>>>>>>>>>>>>>>
+
+	Simply create 'another new' constructor which does all the argument translation and then
+	successivly call the real 'new' with the apropriate hash params:
+
+	SOLUTION #1
+
+	{
+		package Human::Role;
+
+		Class::Maker::class
+		{
+			public =>
+			{
+				string => [qw( name desc )],
+			},
+		};
+
+		sub anew
+		{
+			my $this = shift;
+
+			return $this->new( name => $_[0], desc => $_[1] );
+		}
+
+	}
+
+		my $role = Human::Role->anew( 'dba', 'Database Administrator' );
+
+		use Data::Dumper;
+
+		print Dumper reflect( 'Human::Role' );
+
+	SOLUTION #2
+
+	Override the class and create a constructor for the derived one which is simpler.
+
+		package Human::Role;
+
+		Class::Maker::class
+		{
+			public =>
+			{
+				string => [qw( name desc )],
+			},
+
+			default =>
+			{
+				name => 'Role Name',
+
+				desc => 'Role Descrition',
+			},
+		};
+
+		package Human::Role::Simple;
+
+		@ISA = qw(Human::Role);
+
+		sub new : method
+		{
+			my $this = shift;
+
+			return $this->SUPER::new( name => $_[0] );
+		}
+}
+
+todo
+{
+	Introduce std constructors:	like
+
+		my $obj = My::Object( one => 1, two => 2, three => 3 );
+
+	????? Should we ?????? Because that would pollute My:: namespace with an Object() function, which
+	could be to annoying.
+}
+
+todo
+{
+	reflect()
+
+	* deep reflection should make the 'isa' field containing pointer (hrefs) to the
+	classes.
+
+	* reflect() shouldn't return simple hrefs, better would be 'Class::Maker::Reflex' classes !
+
+	* isa => [qw( )] isnt in sync with @ISA. When @ISA (or isa) is modified after initation, the $reflex->{isa} will only
+	represent the state during object initiation.
+}
+done
+{
+	Works. Now a Class::Maker::Reflex object is returned (it is not created with Class::Maker):
+
+		->{parents} = href with all parent reflexes (->{isa} classes ) if $Class::Maker::Reflection::DEEP is true.
+
+		->{methods} = aref of ': method' functions of that package
+
+		->{def} = the original class definition (undef if not created with Class::Maker)
+
+		->{isa} = the actual @ISA value of the class package
+
+		->{name} = name of the reflected class
+}
+
+todo
+{
+	New syntax !
+
+	public =>
+	{
+		string => [qw( one <two three )],
+
+		int    => [qw( <five six> seven )],
+
+
+	should yeald to following private accessors: _two, _three, _five, _six !
+}
+
+todo
+{
+	Defaults and Getopts
+
+	Add a Getopt modus, so command line arguements can be easily mapped to attributes (See GetOpt::Attribute).
+
+	class Server
+	{
+		public =>
+		{
+			string => [qw( name ip )],
+
+			int => { secure => [ '123' ] },
+		},
+
+		default =>
+		{
+			ip => Getopt( ip=s ) || '127.0.0.1',
+
+			name => Getopt( name=s ) || 'localhost',
+
+			Loadable::startup => 1,
+		}
+	};
+
+	class Getoptable;
+
+	class Configer, { isa => [qw( Getoptable )] };
+
+	my $test = Configer->new();
+
+	$test->getopts( @ARGV );
+}
+
+todo Reflection
+{
+	attr|attributes|privat|private|public is chaotic !
+
+	=> We need clean guidelines which when used, and how they are reflected.
+}
+done
+{
+	1) Only public/private is allowed.
+	2) <method> is used to indicate private methds in public field.
 }

@@ -8,21 +8,13 @@
 
 require 5.005_62; use strict; use warnings;
 
-use Carp;
-
 package Class::Maker;
 
-our $VERSION = '0.05_03';
-
-use attributes ();
-
-use Class::Maker::Basic::Constructor;
+our $VERSION = '0.05_10';
 
 use Class::Maker::Basic::Handler::Attributes;
 
 use Class::Maker::Basic::Fields;
-
-use Class::Maker::Basic::Reflection qw(reflect classes);
 
 use Exporter;
 
@@ -32,11 +24,11 @@ our $DEBUG = 0;
 
 our $TRACE = ( \*STDOUT, \*STDERR )[ ($ENV{CLASSMAKER_TRACE}||2) - 1 ];
 
-our %EXPORT_TAGS = ( 'all' => [ qw(class reflect classes) ] );
+our %EXPORT_TAGS = ( 'all' => [ qw(class) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
-our @EXPORT = qw(class);
+our @EXPORT = ();
 
 our @ISA = qw( Exporter );
 
@@ -87,8 +79,6 @@ sub class_import
 
 	$cpkg = $class;
 
-	::carp "Package: $pkg (caller $class)" if $DEBUG;
-
 		# init class 'cause somebody could give an empty parameter
 		# list for abstract classes
 
@@ -98,19 +88,15 @@ sub class_import
 
 	foreach my $arg ( @args )
 	{
-		::carp "Import: $arg" if $DEBUG;
-
 		if( ref($arg) eq 'HASH' )
 		{
 			no strict 'refs';
 
-				# class reflection
-
-			${ Class::Maker::findclass( $pkg ) } = $arg;
+			Class::Maker::Reflection::install( $arg );
 
 			foreach my $func ( sort { $b cmp $a } keys %$arg )
 			{
-					# "classfields" for the class attributes/isa/configure/..
+					# fields for the class attributes/isa/configure/..
 
 				"Class::Maker::Basic::Fields::${func}"->( $arg->{$func}, $arg );
 			}
@@ -118,95 +104,50 @@ sub class_import
 	}
 }
 
-sub _get_code
-{
-	my $type = shift;
-
-	my $name = shift;
-
-	$name = "${pkg}::$name" if $explicit;
-
-	my $code =
-	{
-		new => \&Class::Maker::Basic::Constructor::new,
-
-		simple_new => \&Class::Maker::Basic::Constructor::simple_new,
-
-		debug_verbose => sub
-		{
-			::carp "'$name' works..." if $DEBUG;
-		},
-
-		default => sub : lvalue
-		{
-			my $this = shift;
-
-		@_ ? $this->{$name} = shift : $this->{$name};
-		},
-
-		array => sub
-		{
-			my $this = shift;
-
-				$this->{$name} = [] unless exists $this->{$name};
-
-				@{ $this->{$name} } = () if @_;
-
-				foreach ( @_ )
-				{
-					push @{ $this->{$name} }, ref($_) eq 'ARRAY' ? @{ $_ } : $_;
-				}
-
-		return wantarray ? @{$this->{$name}} : $this->{$name};
-		},
-
-		hash => sub
-		{
-				my $this = shift;
-
-				unless( exists $this->{$name} )
-				{
-					$this->{$name} = {};
-				}
-
-				foreach my $href ( @_ )
-				{
-					if( ref($href) eq 'HASH' )
-					{
-						foreach my $key ( keys %{ $href } )
-						{
-							$this->{$name}->{$key} = $href->{$key};
-						}
-					}
-				}
-
-		return wantarray ? %{ $this->{$name} } : $this->{$name};
-		},
-	};
-
-return $code->{lc $type} || $code->{'default'};
-}
-
 sub _make_method
 {
 	no strict 'refs';
 
-	my $method_type = shift;
+	my $type = shift;
 
 	my $name = shift;
 
-	my $prefix = shift || '';
+		$Class::Maker::Basic::Handler::Attributes::name = $explicit ? "${pkg}::$name" : $name;
 
-		$name = $prefix . $name;
+		no strict 'refs';
 
-		my $varname = "${pkg}::$name";
+		if( *{ "Class::Maker::Basic::Handler::Attributes::${type}" }{CODE} )
+		{
+			return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->$type;
+		}
 
-		::carp "func: $varname\n" if $DEBUG;
-
-		*{ $varname } = _get_code( $method_type, $name ) unless defined *{ $varname }{CODE};
+return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->default;
 }
 
-sub findclass
+	#
+	# Reflection
+	#
+
+package Class::Maker::Reflex;		# returned by Class::Maker::Reflection::reflect
+
+	sub definition
+	{
+		my $this = shift;
+
+	return $this->{def};
+	}
+
+package Class::Maker::Reflection;
+
+our $DEBUG = $Class::Maker::DEBUG;
+
+	# DEEP : Whether reflect should traverse the @ISA tree and return all parent reflex's
+
+our $DEEP = 0;
+
+our $DEFINITION = 'CLASS';
+
+sub _get_definition
 {
 	my $class = shift;
 
@@ -214,10 +155,218 @@ sub findclass
 
 		no strict 'refs';
 
-return \${ "${class}::CLASS" };
+return \${ "${class}::${DEFINITION}" };
 }
 
+sub _get_isa
+{
+	no strict 'refs';
+
+return @{ $_[0].'::ISA'};
+}
+
+sub install
+{
+	${ Class::Maker::Reflection::_get_definition( $pkg ) } = $_[0];
+}
+
+sub reflect
+{
+	my $class = ref( $_[0] ) || $_[0] || die;
+
+		my $rfx = bless {  name => $class  }, 'Class::Maker::Reflex';
+
+			# - First get the "${$DEFINITION}" href containing the class definition
+			# - find the functions of that class declerated with ': method'
+			# - catch up the parent class reflection if DEEP is activated
+			# - update "${$DEFINITION}"->{isa} with its real @ISA
+
+		$rfx->{def} = ${ Class::Maker::Reflection::_get_definition( $class ) };
+
+		$rfx->{methods} = find_methods( $rfx->{name} );
+
+		no strict 'refs';
+
+		if( $DEEP && defined *{ "${class}::ISA" }{ARRAY} )
+		{
+			$rfx->{isa} = \@{ *{ "${class}::ISA" }{ARRAY} };
+
+			$rfx->{parents}->{$_} = reflect( $_ ) for @{ $rfx->{isa} };
+		}
+
+return $rfx;
+}
+
+sub classes
+{
+	no strict 'refs';
+
+	my @found;
+
+	my $path = shift if @_ > 1;
+
+	foreach my $pkg ( @_ )
+	{
+		next unless $pkg =~ /::$/;
+
+		$path .= $pkg;
+
+		if( $path =~ /(.*)::$/ )
+		{
+			my $clean_path = $1;
+
+			if( $path ne 'main::' )
+			{
+				if( my $href_cls = reflect( $clean_path ) )
+				{
+					push @found, { $clean_path => $href_cls };
+				}
+			}
+
+			foreach my $symbol ( sort keys %{$path} )
+			{
+				if( $symbol =~ /::$/ && $symbol ne 'main::' )
+				{
+					push @found,  classes( $path, $symbol );
+				}
+			}
+		}
+	}
+
+return @found;
+}
+
+sub find_methods
+{
+	my $class = shift;
+
+		my $methods = [];
+
+		no strict 'refs';
+
+		foreach my $pkg ( $class.'::' )
+		{
+			foreach ( sort keys %{$pkg} )
+			{
+				unless( /::$/ )
+				{
+					if( defined *{ "$pkg$_" }{CODE} )
+					{
+						if( my $type = attributes::get( \&{ "$pkg$_" } ) )
+						{
+							push @$methods, "$_" if $type =~ /method/i;
+						}
+					}
+				}
+			}
+		}
+
+return $methods;
+}
+
+sub find
+{
+	my %request = @_;
+
+	my @result;
+
+			# parsing all references in a package (via symbol table)
+
+		while( my ( $where, $what ) = each %request )
+		{
+			no strict 'refs';
+
+			foreach my $pkg ( $where.'::' )
+			{
+				print $Class::Maker::TRACE "Searching in package '$where' for '$what' instances\n" if $DEBUG;
+
+				foreach ( sort keys %{$pkg} )
+				{
+					unless( /::$/ )
+					{
+						if( defined *{ "$pkg$_" } )
+						{
+							my $sref = \${ "$pkg$_" };
+
+							if( ref( $sref ) eq 'REF' )
+							{
+								my $type = ref( $$sref );
+
+								printf $Class::Maker::TRACE "%20s %10s %s isa($what)\n", '$'.$_, $type if $$sref->isa( $what ) and $DEBUG;
+
+								push @result, $$sref;
+							}
+						}
+					}
+				}
+			}
+		}
+
+return \@result;
+}
+
+	# helpers
+
+sub _isa_tree
+{
+	my $list = shift;
+
+	my $level = shift;
+
+	for my $child ( @_ )
+	{
+		my @parents = Class::Maker::Reflection::_get_isa( $child );
+
+		$level++;
+
+		push @{ $list->{$level} }, $child;
+
+		warn sprintf "\@%s::ISA = qw(%s);",$child , join( ' ', @parents ) if $Class::Maker::DEBUG;
+
+		_isa_tree( $list, $level, @parents );
+
+		$level--;
+	}
+}
+
+	# returns the isa tree sorted by level of recursion
+
+	# 5 -> Exporter
+	# 4 -> Object::Debugable
+	# 3 -> Person, Exporter
+	# 2 -> Employee, Exporter, Object::Debugable
+	# 1 -> Doctor
+
+sub isa_tree
+{
+	my $list = {};
+
+	_isa_tree( $list, 0, @_ );
+
+return $list;
+}
+
+	# returns the isa tree in a planar list (for con-/destructor queue's)
+
+sub inheritance_isa
+{
+	warn sprintf "SCANNING ISA FOR (%s);", join( ', ', @_ ) if $Class::Maker::DEBUG;
+
+	my $construct_list = isa_tree( @_ );
+
+	my @ALL;
+
+	foreach my $level ( sort { $b <=> $a } keys %$construct_list )
+	{
+		push @ALL, @{ $construct_list->{$level} };
+	}
+
+return \@ALL;
+}
+
+
 1;
+
 __END__
 
 =head1 NAME
@@ -329,7 +478,7 @@ class Person,
 {
 	isa => [ Something ],
 
-	attributes =>
+	public =>
 	{
 		scalar => [qw( name age )],
 	},
@@ -608,6 +757,11 @@ facultativ: qw(reflect schema)
 obligat:	qw(class)
 
 class by default.
+
+=head1 KNOWN BUGS/PROBLEMS
+
+	* isa => [qw( )] isnt in sync with @ISA. When @ISA (or isa) is modified after initation, the $reflex->{isa} will only
+	represent the state during object initiation.
 
 =head1 AUTHOR
 

@@ -4,8 +4,6 @@
 
 package Class::Maker::Basic::Fields;
 
-use Carp;
-
 sub configure
 {
 	my $args = shift;
@@ -16,9 +14,9 @@ sub configure
 
 	if( exists $args->{explicit} )
 	{
-		$explicit = $args->{explicit};
+		$Class::Maker::explicit = $args->{explicit};
 
-		::carp "EXPLICIT $explicit" if $DEBUG;
+		warn "EXPLICIT $explicit" if $DEBUG;
 	}
 
 	# dtor is missing here
@@ -84,108 +82,44 @@ sub default
 
 	foreach my $attr ( keys %$args )
 	{
-		::carp "\tsetting default for $attr..\n" if $DEBUG;
+		warn sprintf "\tpredefined default %s = '%s'\n", $attr, $args->{$attr} if $DEBUG;
 	}
 }
 
-sub attribute
+our $protected_prefix = { public => '', protected => '__', private => '_' };
+
+sub _create_accessor
 {
+	my $protected = shift;
+
 	my $args = shift;
 
 	my $reflex = shift;
 
-	my $prefix = shift || '';
-
-		if( exists $reflex->{configure}->{private}->{prefix} && $prefix )
-		{
-			$prefix = $reflex->{configure}->{private}->{prefix};
-		}
-
 		foreach my $type ( keys %$args )
 		{
-			::carp "\tkey: $type\n" if $DEBUG;
-
 			my @attributes = ( ref( $args->{$type} ) eq 'HASH' ) ? keys %{$args->{$type}} : @{ $args->{$type} };
-
-			my $cnt = 0;
 
 			foreach my $name ( @attributes )
 			{
-				my $pre = $prefix;
-
-				my $na = $name;
-
-					# check the <attribute> features (only in non private sections
-
-				unless( $prefix )
-				{
-					if( $na =~ /^</ )
-					{
-						$pre = ( exists $reflex->{configure}->{private}->{prefix} ) ? $reflex->{configure}->{private}->{prefix} : '_';
-
-						$na =~ s/[<>]//g;
-
-								# put this method to the private section, just for the reflection
-
-						unless( ( ref( $args->{$type} ) eq 'HASH' ) )
-						{
-							$reflex->{private}->{$type} = [] unless exists $reflex->{private}->{$type};
-
-							push @{ $reflex->{private}->{$type} }, $na;
-
-								# we have to delete this method from the attribute/attr/public section.
-
-							splice @{ $args->{$type} }, $cnt, 1;
-
-							delete $args->{$type} unless scalar @{ $args->{$type} };
-						}
-						else
-						{
-							$reflex->{private}->{$type}->{$na} = $args->{$type}->{$name};
-
-								# we have to delete this method from the attribute/attr/public section.
-
-							delete $args->{$type}->{$name};
-
-							delete $args->{$type} unless keys %{ $args->{$type} };
-						}
-					}
-				}
-
-				Class::Maker::_make_method( $type, $na, $pre );
-
-				$cnt++;
+				Class::Maker::_make_method( $type, $protected_prefix->{$protected}.$name );
 			}
 		}
 }
 
-sub attr
-{
-	attribute( @_ );
-}
-
 sub public
 {
-	attribute( @_ );
+	_create_accessor( 'public', @_ );
 }
 
 sub private
 {
-	attribute( @_, '_' );
+	_create_accessor( 'private', @_ );
 }
 
-sub privat
+sub protected
 {
-	private( @_ );
-}
-
-sub automethod
-{
-	my $args = shift;
-
-	my $reflex = shift;
-
-	::carp join( ',', @$args ), "\n" if $DEBUG;
+	_create_accessor( 'protected', @_ );
 }
 
 sub has
@@ -196,7 +130,7 @@ sub has
 
 	foreach ( keys %$args )
 	{
-		::carp "\tkey: $_\n" if $DEBUG;
+		warn "\tkey: $_\n" if $DEBUG;
 	}
 }
 

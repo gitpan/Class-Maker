@@ -11,27 +11,21 @@ package Class::Maker::Basic::Constructor;
 
 	require 5.005_62; use strict; use warnings;
 
-	#use Bugfix::ref qw(ref bless);
-
-	use Carp;
-
-	use IO::Extended ':all';
-
-	use Exporter;
+use Exporter;
 
 our $VERSION = '0.01';
 
-our $DEBUG = 0;
-
 our @ISA = qw(Exporter);
 
-our %EXPORT_TAGS = ( 'all' => [ qw(new defaults) ],	'std' => [ qw(new) ] );
+our %EXPORT_TAGS = ( 'all' => [ qw(new) ],	'std' => [ qw(new) ] );
 
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 
 our @EXPORT = qw();
 
 # Preloaded methods go here.
+
+our @init_methods = qw( init initialize );
 
 sub simple_new
 {
@@ -46,14 +40,14 @@ sub simple_new
 	gets its classname prepended like "Object::attribute" into the hash
 	representation of the object.
 
-	But you must be aware that when initializing via new( attribute => ),
+	But you must be aware that when initializing via new( public => ),
 	alwas the first parent attribute is used for the initalization.
 
 	new( Parent1::field => 'bla', Parent2::field => 'blabla' );
 
 =cut
 
-	# multiple inheritance constructor
+	# multiple inheritance constructor (shouldn't be overriden to support MI)
 
 sub new
 {
@@ -63,25 +57,28 @@ sub new
 
 		my $this = bless {}, $class;
 
-		my %temp = @_;
+			# convert constructor arguements to accessor/method calls
 
-		foreach my $key ( keys %temp )
+		my %args = @_;
+
+		my $args = \%args;
+
+		_filter_argnames( $args );
+
+			# preset all defaults
+
+		my $rfx = Class::Maker::Reflection::reflect( $class ) or die;
+
+		if( $rfx->definition )
 		{
-			if( $key =~ /^\-+(.*)/ )
-			{
-				$temp{$1} = $temp{$key};
-
-				delete $temp{$key};
-			}
+			_defaults( $this, $rfx->definition->{default} ) if exists $rfx->definition->{default};
 		}
 
-		my $args = \%temp;
+			# inheriting attributes here
 
-		# inheriting attributes here
+		warn( sprintf "NEW TRAVERSING ISA: %s", join( ', ', @{ Class::Maker::Reflection::inheritance_isa( ref( $this ) ) } ) ) if $Class::Maker::DEBUG;
 
-		::carp( sprintf "NEW TRAVERSING ISA: %s", join( ', ', @{ inheritance_isa( ref( $this ) ) } ) ) if $DEBUG;
-
-		foreach my $parent ( @{ inheritance_isa( ref( $this ) || die ) } )
+		foreach my $parent ( @{ Class::Maker::Reflection::inheritance_isa( ref( $this ) || die ) } )
 		{
 			my $class = ref($this);
 
@@ -89,16 +86,13 @@ sub new
 
 			no strict 'refs';
 
-			if( defined *{ "${parent}::_preinit" }{CODE} )
-			{
-				"${parent}::_preinit"->( $this, $args );
-			}
+			"${parent}::_preinit"->( $this, $args ) if defined *{ "${parent}::_preinit" }{CODE};
 
-			foreach my $initmethod ( qw( init initialize ) )
+			foreach my $init_method ( @init_methods )
 			{
-				if( defined *{ "${parent}::${initmethod}" }{CODE} )
+				if( defined *{ "${parent}::${init_method}" }{CODE} )
 				{
-					"${parent}::${initmethod}"->( $this, $args );
+					"${parent}::${init_method}"->( $this, $args );
 
 					last;
 				}
@@ -114,103 +108,57 @@ sub new
 				}
 			}
 
-			if( defined *{ "${parent}::_postinit" }{CODE} )
-			{
-				"${parent}::_postinit"->( $this, $args );
-			}
+			"${parent}::_postinit"->( $this, $args ) if defined *{ "${parent}::_postinit" }{CODE};
 
 			bless $this, $class;
 		}
 
 		# call constructor arguments as functions, because we assume attribute-handlers
 
-		foreach ( keys %temp )
-		{
-			warn "Unhandled ctor arg: '$_' (Implement attribute-handler or check spelling)";
-		}
+		warn "Unhandled new() arg: '$_' (Implement attribute-handler or check spelling)" for keys %args;
 
 return $this;
 }
 
 # functions
 
-sub defaults
+sub _filter_argnames
+{
+	my $temp = shift;
+
+			# rename all -arg or --arg fields
+
+		foreach my $key ( keys %$temp )
+		{
+			if( $key =~ /^\-+(.*)/ )
+			{
+				$temp->{$1} = $temp->{$key};
+
+				delete $temp->{$key};
+			}
+		}
+}
+
+sub _defaults
 {
 	my $this = shift;
 
-	my %args = @_;
+	my $args = shift;
 
-	foreach my $attr ( keys %args )
+	no strict 'refs';
+
+	foreach my $attr ( keys %$args )
 	{
 		if( my $coderef = $this->can( $attr ) )
 		{
-			$this->$coderef( $args{$attr} );
+			print "Setting $this default (via coderef $coderef) $attr = ", $args->{$attr}, "\n" if $Class::Maker::DEBUG;
+
+			$coderef->( $this, $args->{$attr} );
+
+			#$this->$attr( $args->{$attr} );
+			#$this->{$attr} = $args->{$attr};
 		}
 	}
-}
-
-sub classISA
-{
-	no strict 'refs';
-
-return @{ $_[0].'::ISA'};
-}
-
-sub _isa_tree
-{
-	my $list = shift;
-
-	my $level = shift;
-
-	for my $child ( @_ )
-	{
-		my @parents = classISA( $child );
-
-		$level++;
-
-		push @{ $list->{$level} }, $child;
-
-		::carp sprintf "\@%s::ISA = qw(%s);",$child , join( ' ', @parents ) if $DEBUG;
-
-		_isa_tree( $list, $level, @parents );
-
-		$level--;
-	}
-}
-
-	# returns the isa tree sorted by level of recursion
-
-	# 5 -> Exporter
-	# 4 -> Object::Debugable
-	# 3 -> Person, Exporter
-	# 2 -> Employee, Exporter, Object::Debugable
-	# 1 -> Doctor
-
-sub isa_tree
-{
-	my $list = {};
-
-	_isa_tree( $list, 0, @_ );
-
-return $list;
-}
-
-	# returns the isa tree in a planar list (for con-/destructor queue's)
-
-sub inheritance_isa
-{
-	::carp sprintf "SCANNING ISA FOR (%s);", join( ', ', @_ ) if $DEBUG;
-
-	my $construct_list = isa_tree( @_ );
-
-	my @ALL;
-
-	foreach my $level ( sort { $b <=> $a } keys %$construct_list )
-	{
-		push @ALL, @{ $construct_list->{$level} };
-	}
-
-return \@ALL;
 }
 
 1;

@@ -9,8 +9,6 @@ use strict;
 
 use Carp;
 
-#use Object::Debugable qw(debugDump);
-
 	eval
 	{
 		1;

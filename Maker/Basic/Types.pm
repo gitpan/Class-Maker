@@ -1,3 +1,12 @@
+package Class::Maker::Type;
+
+sub new
+{
+	my $this = ref( $_[0] ) || $_[0];
+
+return bless { tieobj => 'Tie::HASH' }, $this;
+}
+
 package Class::Maker::Basic::Types;
 
 {

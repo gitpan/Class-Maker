@@ -6,53 +6,99 @@
 #
 # it and/or modify it under the same terms as Perl itself.
 
-package Class::Maker::Basic::Reflection;
+	# See Class::Maker for the packages
 
-require 5.005_62; use strict; use warnings;
+1;
 
-our $VERSION = '0.01';
+__END__
 
-use Exporter;
+=pod
 
-our @ISA = qw(Exporter);
+=head1 SYNOPSIS
 
-our %EXPORT_TAGS = ( 'all' => [ qw(reflect classes) ] );
+	{
+		package Human::Role;
 
-our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
-
-our @EXPORT = qw();
-
-use IO::Extended ':all';
-
-sub reflect
-{
-	my $class = shift;
-
-		$class = ref( $class ) || $class;
-
-		if( my $reflection = ${ Class::Maker::findclass( $class ) } )
+		Class::Maker::class
 		{
-			my $mlist = find_methods( $class );
+			public =>
+			{
+				string => [qw( name desc )],
+			},
 
-			$reflection->{ methods } = $mlist if @{$mlist} > 0;
+			default =>
+			{
+				name => 'Role Name',
 
-			my $part = shift;
+				desc => 'Role Descrition',
+			},
+		};
 
-			return $part ? $reflection->{$part} : $reflection;
+		sub anew : method
+		{
+			my $this = shift;
+
+			return $this->new( name => $_[0] );
 		}
 
-return undef;
-}
+	}
+
+	{
+		package Human::Role::Simple;
+
+		@ISA = qw(Human::Role);
+
+		sub new : method
+		{
+			my $this = shift;
+
+			return $this->SUPER::new( name => $_[0] );
+		}
+	}
+
+=head1 reflect
+
+	Now a Class::Maker::Reflex object is returned (btw it is not created with Class::Maker):
+
+		->{parents} = href with all ->{isa} classes reflexes (only if $DEEP is true).
+
+		->{methods} = aref of ': method' functions of that package
+
+		->{def} = the original class definition (undef if not created with Class::Maker)
+
+		->{isa} = the actual @ISA value of the class package
+
+		->{name} = name of the reflected class
+
+=cut
+
+=head1 find
+
+Returns a snapshot aref to all instances (objects) of a class in a given package.
+
+CAVEAT: It only finds instance variables not created with 'my'
+
+Example:
+
+		# finds all objects which are return true for ->isa( 'Human' ) in the 'main' package
+
+	my $aref_humans = Class::Maker::Reflection::find( 'main' => 'Human' );
+
+Comment:
+
+This function is extremly inefficient, because it is traversing the complete symbol table instead of
+maintaning a registry of the classes/objects. This seems the lessest error-prone approach, and the time
+will show if there will be need for efficients.
+
+=cut
 
 =head1 Function B<classes>
 
 	classes( fakultativ $scalref_mainpackage, [ $package ], .. );
 
-=head1 Purpose
+ Purpose
 
-	Traverses the symbol table and find "reflectable" classes.
-
-	Returns a list of hash references containing:
+	Traverses the symbol table and find "reflectable" classes.	Returns a list of hash references containing:
 
 		"package_identifier" => $HREF_CLASS_HASH
 
@@ -61,74 +107,3 @@ return undef;
 	{ 'main::MyClass' => $href_myclass }, { 'main::YourClass' => $href_yclass }, ..
 
 =cut
-
-sub classes
-{
-	no strict 'refs';
-
-	my @found;
-
-	my $path = shift if @_ > 1;
-
-	foreach my $pkg ( @_ )
-	{
-		next unless $pkg =~ /::$/;
-
-		$path .= $pkg;
-
-		if( $path =~ /(.*)::$/ )
-		{
-			my $clean_path = $1;
-
-			if( $path ne 'main::' )
-			{
-				if( my $href_cls = reflect( $clean_path ) )
-				{
-					push @found, { $clean_path => $href_cls };
-				}
-			}
-
-			foreach my $symbol ( sort keys %{$path} )
-			{
-				if( $symbol =~ /::$/ && $symbol ne 'main::' )
-				{
-					push @found,  classes( $path, $symbol );
-				}
-			}
-		}
-	}
-
-return @found;
-}
-
-sub find_methods
-{
-	my $class = shift;
-
-		my $methods = [];
-
-		no strict 'refs';
-
-		foreach my $pkg ( $class.'::' )
-		{
-			foreach ( sort keys %{$pkg} )
-			{
-				unless( /::$/ )
-				{
-					if( defined *{ "$pkg$_" }{CODE} )
-					{
-						if( my $type = attributes::get( \&{ "$pkg$_" } ) )
-						{
-							push @$methods, "$_" if $type =~ /method/i;
-						}
-					}
-				}
-			}
-		}
-
-return $methods;
-}
-
-1;
-
-__END__
