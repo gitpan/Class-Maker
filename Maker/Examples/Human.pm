@@ -1,4 +1,4 @@
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 Class::Maker::class Human,
 {
@@ -10,11 +10,13 @@ Class::Maker::class Human,
 
 		string => [qw(coutrycode postalcode firstname lastname sex eye_color hair_color occupation city region street telefon fax)],
 
-		#rawdatetime => [qw(birthday)],
+		time => [qw(birth <driverslicense> dead)],
 
 		array => [qw(nicknames friends)],
 
 		hash => [qw(contacts telefon)],
+
+		whatsit => { '<tricky>' => 'An::Object' },
 	},
 
 	configure =>

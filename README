@@ -15,15 +15,17 @@ EXAMPLE
 	{
 		isa => [ Something ],
 
-	        attributes =>
-	        {
-	                scalar => [qw( name age )],
-	        },
+        attributes =>
+        {
+                scalar => [qw( name age <internal> )],
+        },
 	};
 
 	sub Person::hello
 	{
 		my $this = shift;
+
+		$this->_internal( 2123 );
 
 		printf "Here is %s and i am %d years old.\n",  $this->name, $this->age;
 	};
@@ -49,6 +51,13 @@ DESCRIPTION
 
 	Unfortunately this package has many features, but most of them are not
 	really documented yet. But this should change within the next releases.
+
+STATUS
+	This is alpha software !
+
+	Do not use this module! Everything, except the basic functionalities
+	are still under constant modifications.	Also major parts of the
+	documentation is wrong or outdate.
 
 AUTHOR
     Author: Murat Uenalan (muenalan@cpan.org)

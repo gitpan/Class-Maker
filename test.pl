@@ -18,21 +18,13 @@ use IO::Extended qw(:all);
 
 use Class::Maker;
 
-use Class::Maker::Examples::User;
-
-use Class::Maker::Examples::Customer;
-
-use Class::Maker::Examples::Employee;
-
-use Class::Maker::Examples::Shop;
+use Class::Maker::Examples;
 
 	println "\nFinishing class definition.\n\n\nStarting testing\n";
 
 	ind 1;
 
-	println;
-
-	println "Instantiate Human...";
+	println "\nInstantiate Human...";
 
 		# Object Human
 
@@ -66,6 +58,8 @@ use Class::Maker::Examples::Shop;
 
 	$human->firstname = 'Adam!';
 
+	$human->_driverslicense( '12-12-80' );
+
 	println "Instantiate Employee...";
 
 		# Object Employee
@@ -94,6 +88,10 @@ use Class::Maker::Examples::Shop;
 	$employee->Employee::firstname( 'employee_name' );
 
 	#debugSymbols( 'main::Human::' );
+
+	$employee->__dummy1;
+
+	#$employee->dummy1;
 
 	foreach my $class ( qw( Human Employee Customer User ) )
 	{

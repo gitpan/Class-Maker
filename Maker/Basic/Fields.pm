@@ -10,7 +10,9 @@ sub configure
 {
 	my $args = shift;
 
-	Class::Maker::_make_method( [$args->{ctor}], 'new' ) if exists $args->{ctor};
+	my $reflex = shift;
+
+	Class::Maker::_make_method( 'new', exists $args->{ctor} ? $args->{ctor} : 'new' );
 
 	if( exists $args->{explicit} )
 	{
@@ -26,12 +28,16 @@ sub persistance
 {
 	my $args = shift;
 
+	my $reflex = shift;
+
 	no strict 'refs';
 }
 
 sub isa
 {
 	my $args = shift;
+
+	my $reflex = shift;
 
 		no strict 'refs';
 
@@ -51,6 +57,8 @@ sub isa
 sub version
 {
 	my $args = shift;
+
+	my $reflex = shift;
 
 	no strict 'refs';
 
@@ -72,6 +80,8 @@ sub default
 {
 	my $args = shift;
 
+	my $reflex = shift;
+
 	foreach my $attr ( keys %$args )
 	{
 		carp "\tsetting default for $attr..\n" if $DEBUG;
@@ -82,23 +92,71 @@ sub attribute
 {
 	my $args = shift;
 
-	foreach my $type ( keys %$args )
-	{
-		carp "\tkey: $type\n" if $DEBUG;
+	my $reflex = shift;
 
-			# check for non href and take the keys only
+	my $prefix = shift || '';
 
-		if( ref( $args->{$type} ) eq 'HASH' )
+		if( exists $reflex->{configure}->{private}->{prefix} && $prefix )
 		{
-			Class::Maker::_make_method( [(keys %{$args->{$type}})], $type ) if keys %{$args->{$type}};
+			$prefix = $reflex->{configure}->{private}->{prefix};
+		}
 
-			#print "attribute HASH listing detected\n";
-		}
-		else
+		foreach my $type ( keys %$args )
 		{
-			Class::Maker::_make_method( $args->{$type}, $type ) if scalar @{ $args->{$type} };
+			carp "\tkey: $type\n" if $DEBUG;
+
+			my @attributes = ( ref( $args->{$type} ) eq 'HASH' ) ? keys %{$args->{$type}} : @{ $args->{$type} };
+
+			my $cnt = 0;
+
+			foreach my $name ( @attributes )
+			{
+				my $pre = $prefix;
+
+				my $na = $name;
+
+					# check the <attribute> features (only in non private sections
+
+				unless( $prefix )
+				{
+					if( $na =~ /^</ )
+					{
+						$pre = ( exists $reflex->{configure}->{private}->{prefix} ) ? $reflex->{configure}->{private}->{prefix} : '_';
+
+						$na =~ s/[<>]//g;
+
+								# put this method to the private section, just for the reflection
+
+						unless( ( ref( $args->{$type} ) eq 'HASH' ) )
+						{
+							$reflex->{private}->{$type} = [] unless exists $reflex->{private}->{$type};
+
+							push @{ $reflex->{private}->{$type} }, $na;
+
+								# we have to delete this method from the attribute/attr/public section.
+
+							splice @{ $args->{$type} }, $cnt, 1;
+
+							delete $args->{$type} unless scalar @{ $args->{$type} };
+						}
+						else
+						{
+							$reflex->{private}->{$type}->{$na} = $args->{$type}->{$name};
+
+								# we have to delete this method from the attribute/attr/public section.
+
+							delete $args->{$type}->{$name};
+
+							delete $args->{$type} unless keys %{ $args->{$type} };
+						}
+					}
+				}
+
+				Class::Maker::_make_method( $type, $na, $pre );
+
+				$cnt++;
+			}
 		}
-	}
 }
 
 sub attr
@@ -111,14 +169,21 @@ sub public
 	attribute( @_ );
 }
 
+sub private
+{
+	attribute( @_, '_' );
+}
+
 sub privat
 {
-	attribute( @_ );
+	private( @_ );
 }
 
 sub automethod
 {
 	my $args = shift;
+
+	my $reflex = shift;
 
 	carp join( ',', @$args ), "\n" if $DEBUG;
 }
@@ -126,6 +191,8 @@ sub automethod
 sub has
 {
 	my $args = shift;
+
+	my $reflex = shift;
 
 	foreach ( keys %$args )
 	{

@@ -208,3 +208,20 @@ done
 {
 	see persistance.pm
 }
+
+todo
+{
+	Fields.pm Line 114 ff.
+
+	# DANGER !!! WHAT HAPPENS WHEN $attributes was a hashref ??? see Line 114 above.
+
+	Fields.pm Line 132 ff.
+
+	# WE HAVE TO DELETE THIS METHOD FROM THE attribute/attr/public section.
+}
+done
+{
+	- both done
+	- now also correctly moving $args->{type} sections from public to private (not leaving
+	any empty fields).
+}

@@ -18,7 +18,7 @@ Class::Maker::class 'User',
 
 	isa => [qw( Human )],
 
-	attribute =>
+	public =>
 	{
 		int => [qw( logins )],
 

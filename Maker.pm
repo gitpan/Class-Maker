@@ -8,11 +8,9 @@
 
 package Class::Maker;
 
-require 5.005_62;
+our $VERSION = '0.05_01';
 
-use strict;
-
-use warnings;
+require 5.005_62; use strict; use warnings;
 
 use attributes ();
 
@@ -30,11 +28,9 @@ use Exporter;
 
 use subs qw(class);
 
-our $VERSION = '0.02';
-
 our $DEBUG = 0;
 
-	# read the perldoc Sub::Quotelike why i use , 'qa'
+our $TRACE = ( \*STDOUT, \*STDERR )[ ($ENV{CLASSMAKER_TRACE}||2) - 1 ];
 
 our %EXPORT_TAGS = ( 'all' => [ qw(class reflect classes) ] );
 
@@ -116,7 +112,7 @@ sub class_import
 			{
 					# "classfields" for the class attributes/isa/configure/..
 
-				"Class::Maker::Basic::Fields::${func}"->( $arg->{$func} );
+				"Class::Maker::Basic::Fields::${func}"->( $arg->{$func}, $arg );
 			}
 		}
 	}
@@ -195,18 +191,19 @@ sub _make_method
 {
 	no strict 'refs';
 
-	my $args = shift;
-
 	my $method_type = shift;
 
-		foreach my $name ( @$args )
-		{
-			my $varname = "${pkg}::$name";
+	my $name = shift;
 
-			carp "func: $varname\n" if $DEBUG;
+	my $prefix = shift || '';
 
-			*{ $varname } = _get_code( $method_type, $name ) unless defined *{ $varname }{CODE};
-		}
+		$name = $prefix . $name;
+
+		my $varname = "${pkg}::$name";
+
+		carp "func: $varname\n" if $DEBUG;
+
+		*{ $varname } = _get_code( $method_type, $name ) unless defined *{ $varname }{CODE};
 }
 
 sub findclass
@@ -231,14 +228,12 @@ Class::Maker - classes, reflection, schema, serialization, attribute- and multip
 
 use Class::Maker qw(class);
 
-class UnixUser,
+class Human,
 {
-	isa => [qw( .ParentClassA ParentClassB )],
+	isa => [qw( ParentClass )],
 
-	attribute =>
+	public =>
 	{
-		int		=> [qw(uid gid)],
-
 		string	=> [qw(name lastname)],
 
 		ref		=> [qw(father mother)],
@@ -246,32 +241,49 @@ class UnixUser,
 		array	=> [qw(friends)],
 
 		custom	=> [qw(anything)],
-	}
+	},
+
+	private =>
+	{
+		int     => [qw(dummy1 dummy2)],
+	},
 
 	configure =>
 	{
-		ctor => 'makenew',
+		ctor => 'create',
 
 		explicit => 0,
 	},
 };
 
-sub UnixUser::hello : method
+sub Human::greeting : method
 {
 	my $this = shift;
 
 		printf 'This is %s (%d)', $this->name, $this->uid;
-
-return 1;
 }
 
-	my $a = UnixUser->new( uid => 1, gid => 2, name => Murat );
+class UnixUser,
+{
+	isa => [qw( Human )],
 
-	$a->father( UnixUser->new( name => Suleyman ) );
+	public =>
+	{
+		int		=> [qw(uid gid)],
 
-	$a->hello();
+		string	=> [qw(username)],
+	},
+};
+
+	my $a = Human->new( uid => 1, gid => 2, name => Bart );
+
+	$a->father( Human->new( name => Houmer ) );
+
+	$a->greeting();
 
 	$a->uid = 12;
+
+	$a->_dummy1( 'bla' );
 
 =head1 DESCRIPTION
 
@@ -324,37 +336,6 @@ class Person,
 };
 
 When using "class", you do not explictly need "package". The function does all symbol creation for you. It is more a class decleration (like in java/cpp/..):
-
-=head1 INTERNALS
-
-Following happens in the background, when using 'class':
-
-=over 4
-
-=item creates a package "Person".
-=item sets @Person::ISA to the [ 'Something' ].
-=item creates method handlers for the attributes (including lvalue methods).
-=over 4
-while only "hash" and "array" keys are keywords, any other
-will result in a simple get/set method (this is very usefull for pseudo types, wich can be later
-implemented).
-
-=back
-
-=item exports a default constructor "Person::new()"
-=item which handles argument initialization
-=item has a mechanism for initializing the parent objects (including MI)
-=item so you don't need to do it yourself
-=item creates $Person::CLASS holding a hashref to the structure [the second argument]
-=item good for reflection: i.e. you can get runtime information about the class
-=over 4
-=item usable for dependency/class walking
-=item creating on-the-fly persistance => in combination with Tangram (through reflection)
-=item it creates the complete tangram schema tree (Tangram users know how hard it is
-=item to have x hand-maintained schema-hashes => here you get everything automatic).
-=back
-
-=back
 
 =head1 CLASS FUNCTION
 
@@ -447,14 +428,14 @@ Fields are the keys in the hashref given as the second (or first if the first ar
 
 =item private
 
-	All properties in the 'private' section, get a '__' prepended to their names.
+	All properties in the 'private' section, get a '_' prepended to their names.
 
 	private =>
 	{
 		int		=> [qw(uid gid)],
 	},
 
-	So you must access 'uid' with $obj->__uid();
+	So you must access 'uid' with $obj->_uid();
 
 =item public|attribute|attr
 
@@ -473,7 +454,7 @@ Fields are the keys in the hashref given as the second (or first if the first ar
 
 =item configure
 
-	This Field is for general options. In the basic package following options are supported:
+	This Field is for general options. Basicly following options are supported:
 
 		a) new: The name of the default constructor is 'new'. With this option you can change the
 		name to something of your choice. For instance:
@@ -494,6 +475,7 @@ Fields are the keys in the hashref given as the second (or first if the first ar
 		key name:
 
 		Example:
+
 		'A' inherits 'B'. Both have a 'name' property. With explicit internally the fields
 		are distinct:
 
@@ -505,6 +487,23 @@ Fields are the keys in the hashref given as the second (or first if the first ar
 
 		Only use this feature, if you have fear that name clashes could appear, beside overloading. Per default
 		it is turned off, because i suppose that most class designers care for name clashes themselfs.
+
+		c) I<private>
+
+			- prefix string (default '_') for private functions can be changed with this.
+
+		Example:
+
+			private =>
+			{
+				int => [qw(dummy1)],
+			},
+			configure =>
+			{
+				private => { prefix => '__' },
+			},
+
+		would force to access 'dummy1' via ->__dummy1().
 
 =item automethod
 
@@ -560,6 +559,37 @@ Fields are the keys in the hashref given as the second (or first if the first ar
 
 =back
 
+=head1 INTERNALS
+
+Following happens in the background, when using 'class':
+
+=over 4
+
+=item creates a package "Person".
+=item sets @Person::ISA to the [ 'Something' ].
+=item creates method handlers for the attributes (including lvalue methods).
+=over 4
+while only "hash" and "array" keys are keywords, any other
+will result in a simple get/set method (this is very usefull for pseudo types, wich can be later
+implemented).
+
+=back
+
+=item exports a default constructor "Person::new()"
+=item which handles argument initialization
+=item has a mechanism for initializing the parent objects (including MI)
+=item so you don't need to do it yourself
+=item creates $Person::CLASS holding a hashref to the structure [the second argument]
+=item good for reflection: i.e. you can get runtime information about the class
+=over 4
+=item usable for dependency/class walking
+=item creating on-the-fly persistance => in combination with Tangram (through reflection)
+=item it creates the complete tangram schema tree (Tangram users know how hard it is
+=item to have x hand-maintained schema-hashes => here you get everything automatic).
+=back
+
+=back
+
 =head2 PERFORMANCE
 
 I never benchmarked Class::Maker. Because the internal representation is just the same as for
@@ -582,6 +612,10 @@ class by default.
 =head1 AUTHOR
 
 Author: Murat Uenalan (muenalan@cpan.org)
+
+Contributions (Ideas or Code):
+
+	- Terrence Brannon
 
 =head1 COPYRIGHT
 

@@ -12,9 +12,14 @@ Class::Maker::class Employee,
 
 	#has => { Person => [qw(father mother sister brother)],
 
-	attribute =>
+	public =>
 	{
 		getset => [qw( firstname income payment position )],
+	},
+
+	private =>
+	{
+		int => [qw( dummy1 dummy2 )],
 	},
 
 	configure =>
@@ -24,6 +29,8 @@ Class::Maker::class Employee,
 		dtor => 'delete',
 
 		explicit => 1,
+
+		private => { prefix => '__' },
 	},
 };
 
@@ -45,7 +52,7 @@ sub Employee::_postinit
 
 =cut
 
-sub Employee::phatom : method
+sub Employee::phantom : method
 {
 	my $this = shift;
 
