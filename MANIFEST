@@ -8,6 +8,7 @@ Maker/Basic/Handler/Attributes.pm
 Maker/Basic/Reflection.pm
 Maker/Basic/Types.pm
 Maker/Schema.pm
+Maker/Exception.pm
 README
 Todo
 classwalker.pl

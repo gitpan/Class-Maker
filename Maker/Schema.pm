@@ -6,7 +6,7 @@
 #
 # it and/or modify it under the same terms as Perl itself.
 
-package Class::Maker::Extension::Schema;
+package Class::Maker::Schema;
 
 sub schema
 {
@@ -114,11 +114,11 @@ __END__
 
 =head1 NAME
 
-Class::Maker::Extension::Schema - reflex to schema mapper
+Class::Maker::Schema - "reflex to schema" mapper base class
 
 =head1 SYNOPSIS
 
-use Class::Maker::Extension::Schema;
+use Class::Maker::Schema;
 
 =head1 DESCRIPTION
 

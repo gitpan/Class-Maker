@@ -10,3 +10,4 @@ use strict;
 use Class::Maker qw(class);
 
 printf "ok %d\n", ++$loaded;
+

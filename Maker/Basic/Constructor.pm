@@ -13,7 +13,7 @@ package Class::Maker::Basic::Constructor;
 
 use Exporter;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 our @ISA = qw(Exporter);
 
@@ -47,23 +47,41 @@ sub simple_new
 
 =cut
 
-	# multiple inheritance constructor (shouldn't be overriden to support MI)
+	# multiple inheritance constructor (shouldn't be overriden, otherwise no MI)
 
 sub new
 {
-	my $class = shift;
+	my $what = shift;
 
-		$class = ref( $class ) || $class;
+		my $class = ref( $what ) || $what;
 
-		my $this = bless {}, $class;
-
-			# convert constructor arguements to accessor/method calls
+			# convert constructor arguments to accessor/method calls
 
 		my %args = @_;
 
 		my $args = \%args;
 
 		_filter_argnames( $args );
+
+			# look if we just need cloning
+
+		if( ref( $what ) )
+		{
+			my %copy = %$what;
+
+			my $clone = bless \%copy, $class;
+
+			while( my ( $key, $value ) = each %args )
+			{
+				$clone->$key( $value );
+			}
+
+			return $clone;
+		}
+
+			# if we do not clone, construct a new instance
+
+		my $this = bless {}, $class;
 
 			# preset all defaults
 

@@ -20,12 +20,17 @@ EXAMPLE
 
 	class Person,
 	{
-		isa => [ Something ],
+		isa => [ 'Something' ],
 
-        attributes =>
+        public =>
         {
-                scalar => [qw( name age <internal> )],
+                scalar => [qw( name age internal )],
         },
+
+        private
+        {
+                int => [qw( internal )],
+        }
 	};
 
 	sub Person::hello
@@ -48,8 +53,7 @@ DESCRIPTION
     Single and multiple and attribute inheritance is supported.
 
 AUDIENCE
-    This package is for everybody who wants to program oo-perl and does not
-    really feel comfortable with the common way. While it has basicly
+    This package is for the intermediate-to-pro oo-perl programmer. While it has basicly
     similarities to Class::Struct and Class::MethodMaker, this package has significant
     differences and additional functionalities.
 

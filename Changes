@@ -136,3 +136,24 @@ Revision history for Perl extension Class::Maker.
 	if new accessors types are into that package (see _make_method in Maker.pm).
 
 	- 'attribute' field is now obsolete ! Now only private/public/protected are allowed.
+
+0.05_10 01.09.2002 16:14
+
+	- Class::Maker::Basic::Constructor new() supports cloning (use args for clone modification).
+
+		$new_obj = Pkg::Name->new( name => 'name', email => 'email@server.org' );
+
+		$clone_obj = $new_obj->new( name => 'othername' );
+
+0.05_12 29.9.2002 18:53
+
+	- Added explicitly
+	
+		use attributes;
+		
+	to Maker.pm because under perl5.8.0 it seems to be needed.
+
+0.5.14
+
+   - Class::Maker::Exception added. See pod.
+

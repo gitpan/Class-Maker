@@ -10,7 +10,7 @@ require 5.005_62; use strict; use warnings;
 
 package Class::Maker;
 
-our $VERSION = '0.05_10';
+our $VERSION = '0.5.14';
 
 use Class::Maker::Basic::Handler::Attributes;
 
@@ -130,11 +130,20 @@ return *{ "${pkg}::$name" } = Class::Maker::Basic::Handler::Attributes->default;
 
 package Class::Maker::Reflex;		# returned by Class::Maker::Reflection::reflect
 
-	sub definition
+	sub definition : method
 	{
 		my $this = shift;
 
 	return $this->{def};
+	}
+	
+	sub parents : method
+	{
+		my $this = shift;
+
+		return unless exists $this->{isa};	
+				
+	return Class::Maker::Reflection::inheritance_isa( @{ $this->{isa} } );
 	}
 
 package Class::Maker::Reflection;
@@ -235,6 +244,8 @@ sub classes
 
 return @found;
 }
+
+use attributes;
 
 sub find_methods
 {
@@ -363,7 +374,6 @@ sub inheritance_isa
 
 return \@ALL;
 }
-
 
 1;
 

@@ -19,7 +19,6 @@ ok(1); # If we made it this far, we're ok.
 # Insert your test code below, the Test module is use()ed here so read
 # its man page ( perldoc Test ) for help writing this test script.
 
-
 Class::Maker::class 'TestMe',
 {
 	public =>
@@ -37,12 +36,28 @@ Class::Maker::class 'TestMe',
 
 	print "FIRST: \n";
 
-	print Dumper [ $tm ];
+	my $clone = $tm->new( two => '666' );
+
+	print Dumper [ $tm, $clone ];
 
 	$Class::Maker::Basic::Fields::DEBUG = 1;
 
 {
+	package Role;
+
+	Class::Maker::class
+	{
+		public =>
+		{
+			string => [qw( anything )],
+		},
+	};
+}
+
+{
 	package Human::Role;
+
+	our @ISA = qw( Role );
 
 	Class::Maker::class
 	{
@@ -105,5 +120,7 @@ Class::Maker::class 'TestMe',
 	print "--" x 40, "\n";
 
 	print Dumper 'Human::Role::Simple reflex', Class::Maker::Reflection::reflect( 'Human::Role::Simple' );
+	
+	print Dumper Class::Maker::Reflection::reflect( 'Human::Role::Simple' )->parents; 
 
 	#class User => qw/Human/, qw( string<name firstname title> date<birthday> email<email> array<friends> hash<synonymes> );
