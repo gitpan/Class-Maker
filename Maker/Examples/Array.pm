@@ -1,7 +1,7 @@
-Class::Maker::class Array,
-{
-	version => '0.001',
+package Array;
 
+Class::Maker::class
+{
 	attribute =>
 	{
 		getset => [qw(max)],
@@ -9,13 +9,6 @@ Class::Maker::class Array,
 		array => [qw(_array)],
 	},
 };
-
-sub Array::_postinit
-{
-	my $this = shift;
-
-		die 'Array needs valid _array member' unless $this->_array;
-}
 
 sub Array::push : method
 {
@@ -26,9 +19,7 @@ return push @{ $this->_array }, @_;
 
 sub Array::pop : method
 {
-	my $this = shift;
-
-return pop @{ $this->_array };
+	pop @{ shift->_array };
 }
 
 sub Array::shift : method
@@ -47,23 +38,17 @@ return unshift @{ $this->_array }, @_;
 
 sub Array::count : method
 {
-	my $this = shift;
-
-return scalar @{ $this->_array };
+	scalar @{ shift->_array };
 }
 
 sub Array::clear : method
 {
-	my $this = shift;
-
-return @{ $this->_array } = ();
+	@{ shift->_array } = ();
 }
 
 sub Array::get : method
 {
-	my $this = shift;
-
-return @{ $this->_array };
+	@{ shift->_array };
 }
 
 1;

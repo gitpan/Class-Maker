@@ -4,3 +4,6 @@ Revision history for Perl extension Class::Maker.
 	- original version; created by h2xs 1.21 with options
 		-A -X -a -n Class::Maker
 
+0.02  18.06.2002 22:31
+	- Fixed a bug in Class::Maker::Examples::Array which lead
+	to failure of other cpan module SQL::Generator

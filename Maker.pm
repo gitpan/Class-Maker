@@ -1,4 +1,4 @@
-# Author: Murat Uenalan (murat.uenalan@charite.de)
+# Author: Murat Uenalan (muenalan@cpan.org)
 #
 # Copyright (c) 2001 Murat Uenalan. All rights reserved.
 #
@@ -30,7 +30,7 @@ use Exporter;
 
 use subs qw(class);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 our $DEBUG = 0;
 
@@ -250,8 +250,6 @@ class UnixUser,
 
 	configure =>
 	{
-		# Future: also allow: ctor or dtor => $coderef
-
 		ctor => 'makenew',
 
 		explicit => 0,

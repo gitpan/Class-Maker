@@ -1,4 +1,4 @@
-# Author: Murat Uenalan (murat.uenalan@charite.de)
+# Author: Murat Uenalan (muenalan@cpan.org)
 #
 # Copyright (c) 2001 Murat Uenalan. All rights reserved.
 #
