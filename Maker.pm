@@ -6,13 +6,13 @@
 #
 # it and/or modify it under the same terms as Perl itself.
 
-our $VERSION = '0.05_02';
-
 require 5.005_62; use strict; use warnings;
 
 use Carp;
 
 package Class::Maker;
+
+our $VERSION = '0.05_03';
 
 use attributes ();
 

@@ -79,7 +79,7 @@ sub new
 
 		# inheriting attributes here
 
-		::carp sprintf "NEW TRAVERSING ISA: %s", join( ', ', @{ inheritance_isa( ref( $this ) ) } ) if $DEBUG;
+		::carp( sprintf "NEW TRAVERSING ISA: %s", join( ', ', @{ inheritance_isa( ref( $this ) ) } ) ) if $DEBUG;
 
 		foreach my $parent ( @{ inheritance_isa( ref( $this ) || die ) } )
 		{

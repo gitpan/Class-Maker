@@ -11,6 +11,8 @@ WriteMakefile(
     {
     	Data::Dumper => 0,
 
+    	Data::Verify => 0,
+
     	IO::Extended => 0,
 
     }, # e.g., Module::Name => 1.1

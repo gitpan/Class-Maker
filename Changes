@@ -41,3 +41,7 @@ Revision history for Perl extension Class::Maker.
 0.05_02 01.07.2002 00:49
 
 	- compilation failed on Class::Maker::Example::* classes fixed.
+
+0.05_03 04.07.2002 03:18
+
+	- updated dependencies (Data::Verify)
