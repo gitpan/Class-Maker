@@ -1,0 +1,6 @@
+Revision history for Perl extension Class::Maker.
+
+0.01  Tue Jun  4 05:20:50 2002
+	- original version; created by h2xs 1.21 with options
+		-A -X -a -n Class::Maker
+

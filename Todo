@@ -1,0 +1,210 @@
+todo
+{
+	reflector::reflect() should do recursion to the parents when retrieving
+
+	isa, can etc. when needed ("deep reflection").
+}
+done
+{
+	class configure should have option 'explicit' for turning object hash
+
+	keys with 'Object::' on/off
+
+	configure =>
+	{
+		explicit => 0,
+	}
+}
+
+todo
+{
+	class attributes should be compatible with tangram object fields....
+
+		Tangram comes with built-in support for the following types:
+
+		* string, int, real: see the Tangram::Scalar manpage
+
+		* reference : see the Tangram::Ref manpage
+
+		* array : see the Tangram::Array manpage, the Tangram::IntrArray manpage
+
+		* Set::Object : see the Tangram::Set manpage, the Tangram::IntrSet
+		manpage
+}
+done
+{
+	implemented via Class::Maker::persistance
+}
+
+todo
+{
+	"Automatic & Intelligent" deploy of the Tangram::Schema in persist().
+
+	- Deploy on first-time usage OR when schema changes with careful handling
+	of loss old data deployed with the previous format.
+}
+done
+{
+	- first deploying worked, but nothing intelligent
+}
+
+todo
+{
+	Perldoc documentation for class.pm ctor.pm persistance.pm and reflector.pm
+}
+done
+{
+}
+
+todo
+{
+	Add gimmik to the 'new' constructor so arguments leading 'minus' are allowed, like "new( -attrib )".
+}
+done
+{
+	now all prefixed 'minus' signes are ignored for the keys like -attrib, --attrib, ...
+}
+
+todo
+{
+	import_isa function/config which automatically calls 'use' foreach isa class.
+}
+done
+{
+	skipped.
+}
+
+todo
+{
+	Class::Maker::persistance	schema()
+
+		- must produce real object names (with '::') as keys, and a '::' replaced by '_' version as
+		a "tablename" entry for tangram.
+
+		- this must be also valid for the ref => { name => 'My::Complex::Types' } attributes.
+
+		- these ref|array => { name => type } attribute objects have to be added to the schema tree classes, because
+		tangram must know even the schmema of just referenced classes.
+
+	See Web::Objects test.pl for trouble example.
+}
+done
+{
+	Done.
+
+	- The attribute ref|array class traversal is very inefficient, i think. Recursive use of schema() function could
+	be optimized so no double class parsing would occur.
+
+	TOSKIP: This is an internal Tangram problem, which is solved via Tangram::MetaStorage !
+}
+
+todo
+{
+	More intelligent deploy. Just looking for the "tangram" table is very idiotic when having multiple schema`s
+	to deploy.
+}
+done
+{
+}
+
+todo
+{
+	Use nametable aliases for new() etc instead of srefs.
+}
+done
+{
+}
+
+todo
+{
+		# this doesn't work yet - no idea why
+		#export the class function into the CORE::GLOBAL:: so it behaves like an internal routine
+
+	BEGIN
+	{
+		no strict 'refs';
+
+		*{ "CORE::GLOBAL::class" } = &class;
+	}
+}
+done
+{
+	According to Simon McCaughey <simonmcc@nortelnetworks.com.nospam>:
+	> My problem is in unit-testing modules, I want to stub out all external
+	> function calls, so for example I want the function time() to always return
+	> 991401617 (for example)
+	>
+	> So having read cookbook, and camel it seems the best way to redefine a
+	> function *globally* is to do :
+	>
+	> *CORE::GLOBAL::time = sub {
+	> return 991401617;
+	> }
+	>
+	> and this works.
+
+	...provided it happens at compile time.
+
+	> Is it possible to do this from inside a sub, as I cant seem to get that
+	> working??
+
+	There is no reason why this shouldn't be possible in a sub (though
+	I didn't try), but the same caveat applies:  The sub must be called
+	at compile time, for instance in a module you "use" or in a begin
+	block.  I believe you are asking if the overriding can be done at
+	run time, and the answer to that is no.  You can, however, replace
+	time() with a function whose behavior can change at runtime, like so:
+
+	BEGIN {
+	    my $true_time = 1;
+
+	    *CORE::GLOBAL::time = sub {
+	        return $true_time ? CORE::time : 1234567;
+	    };
+
+	    sub toggle_time { # ...or something more convenient
+	        $true_time = ! $true_time;
+	    }
+	}
+
+	Now time() will first behave normally, but after a call to toggle_time()
+	it will return 1234567 until toggle_time is called again, and so on.
+
+	Anno
+}
+
+todo
+{
+	- adding a "classes" function which returns all reflectable classes from the
+	symboltable (starting at a package of my choice)
+}
+done
+{
+	- added to Class::Maker::reflection
+
+	- export: use Class::Maker qw(classes);
+
+	- see the ./classwalker.pl script in this dist
+}
+
+todo
+{
+	- classes should return an array of package id's instead of a hash. Then a user
+	might use reflect( package ) to retrieve the information.
+}
+done
+{
+}
+
+todo
+{
+	"Tangram schema creation"
+
+		array => [qw(one two three)]	become flat_array
+
+		array => { children => 'Human', ...    stay array !
+}
+done
+{
+	see persistance.pm
+}

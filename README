@@ -1,0 +1,58 @@
+                               Class::Maker
+                               ============
+
+NAME
+    Class::Maker - classes, reflection, schema, serialization, attribute-
+    and multiple inheritance
+
+EXAMPLE
+
+	use Class::Maker qw(class);
+
+	class Something;
+
+	class Person,
+	{
+		isa => [ Something ],
+
+	        attributes =>
+	        {
+	                scalar => [qw( name age )],
+	        },
+	};
+
+	sub Person::hello
+	{
+		my $this = shift;
+
+		printf "Here is %s and i am %d years old.\n",  $this->name, $this->age;
+	};
+
+	my $p = Person->new( name => Murat, age => 27 );
+
+	$p->hello;
+
+DESCRIPTION
+    Class::Maker introduces the concept of classes via a "class" function.
+    It automatically creates packages, ISA, new and attribute-handlers. The
+    classes can inherit from common perl-classes and class-maker classes.
+    Single and multiple and attribute inheritance is supported.
+
+    This package is for everybody who wants to program oo-perl and does not
+    really feel comfortable with the common way.
+
+    Java-like reflection is also implemented and allows one to inspect the
+    class properties and methods during runtime. This is helpfull for
+    implementing persistance and serialization. A Tangram (see cpan) schema
+    generator is included to the package, so one can use Tangram
+    object-persistance on the fly as long as he uses Class::Maker classes.
+
+	Unfortunately this package has many features, but most of them are not
+	really documented yet. But this should change within the next releases.
+
+AUTHOR
+    Author: Murat Uenalan (muenalan@cpan.org)
+
+COPYRIGHT
+    (c) 2001 by Murat Uenalan. All rights reserved. Note: This program is
+    free software; you can redistribute it and/or modify it under the same
