@@ -15,7 +15,7 @@ Revision history for Perl extension Class::Maker.
 0.04 26.06.2002 00:57
 	- Added a couple of very usefull Example:: objects.
 
-0.05 01.07.2002 00:49
+0.05_01 01.07.2002 00:49
 	- changed the usage of Class::Maker::Fields::_make_method()
 	- now supporting '<attr>' syntax in the attribute section for
 	making these attribute fields private (Inspired by Terrence
@@ -37,3 +37,7 @@ Revision history for Perl extension Class::Maker.
 	four private.
 	This bracket-private feature should work only in public and
 	attributes fields.
+
+0.05_02 01.07.2002 00:49
+
+	- compilation failed on Class::Maker::Example::* classes fixed.

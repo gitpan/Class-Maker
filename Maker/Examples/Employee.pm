@@ -4,7 +4,9 @@ use Class::Maker::Examples::Human;
 
 #use Object::Debugable;
 
-Class::Maker::class Employee,
+package  Employee;
+
+Class::Maker::class
 {
 	version => $VERSION,
 
@@ -34,14 +36,14 @@ Class::Maker::class Employee,
 	},
 };
 
-sub Employee::_preinit
+sub _preinit
 {
 	my $this = shift;
 
 		#whereami();
 }
 
-sub Employee::_postinit
+sub _postinit
 {
 	my $this = shift;
 
@@ -52,10 +54,9 @@ sub Employee::_postinit
 
 =cut
 
-sub Employee::phantom : method
+sub phantom : method
 {
 	my $this = shift;
-
 
 return;
 }

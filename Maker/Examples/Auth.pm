@@ -1,19 +1,19 @@
 require 5.005_62; use strict; use warnings;
 
-use class;
+use Class::Maker::Examples::Expirable;
 
-use Object::Expirable;
+package Auth;
 
-::class 'Object::Auth',	
+Class::Maker::class
 {
-	isa => [ qw( Object::Expirable ) ],
-		
+	isa => [ qw( Expirable ) ],
+
 	attribute =>
 	{
 		bool => [ qw( isin ) ],
-		
+
 		int => [ qw( logincount passfailed ) ],
-		
+
 		string => [ qw( userid passwd lastvisitdate passlastfailed ) ],
 	},
 };
@@ -22,7 +22,7 @@ our $VERSION = '0.02';
 
 # Preloaded methods go here.
 
-sub Object::Auth::_preinit
+sub _preinit
 {
 	my $this = shift;
 
@@ -33,7 +33,7 @@ sub Object::Auth::_preinit
 		$this->isin(0);
 }
 
-sub Object::Auth::login : method
+sub login : method
 {
 	my $this = shift;
 
@@ -66,7 +66,7 @@ sub Object::Auth::login : method
 return undef;
 }
 
-sub Object::Auth::logout : method
+sub logout : method
 {
 	my $this = shift;
 
@@ -82,28 +82,25 @@ __END__
 
 =head1 NAME
 
-CATS::Loginable - Perl extension for blah blah blah
+Class::Maker::Example::Auth - object for authentications
 
 =head1 SYNOPSIS
 
-  use CATS::Loginable;
+	use Class::Maker::Example::Auth;
+
+		Class::Maker::Example::Auth->new();
 
 =head1 DESCRIPTION
 
-Stub documentation for CATS::Attachment, created by h2xs. It looks like the
-author of the extension was negligent enough to leave the stub
-unedited.
-
-Blah blah blah.
+This is just an example. Please have a look within the sourcecode of this module.
 
 =head2 EXPORT
 
 None by default.
 
-
 =head1 AUTHOR
 
-A. U. Thor, a.u.thor@a.galaxy.far.far.away
+Murat Uenalan, <muenalan@cpan.org>
 
 =head1 SEE ALSO
 

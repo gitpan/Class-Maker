@@ -8,7 +8,7 @@ our $name;
 
 our $debug_verbose = sub
 {
-	carp "$name: it works..." if $DEBUG;
+	::carp "$name: it works..." if $DEBUG;
 };
 
 	# create an attribute handler, which also accepts

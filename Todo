@@ -225,3 +225,22 @@ done
 	- now also correctly moving $args->{type} sections from public to private (not leaving
 	any empty fields).
 }
+
+todo
+{
+	private-bracket feature:
+
+	the brackets should include multiple attribute values,
+	like qw(one <two three four> five) , should make two, three,
+	four private.
+	This bracket-private feature should work only in public and
+	attributes fields.
+}
+
+todo
+{
+	configure->{explicit},
+	configure->{private}->{prefix},
+
+	Shouldn't be changed on a per-object basis => Should make them global !
+}

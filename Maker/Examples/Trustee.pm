@@ -1,14 +1,10 @@
-package Class::Maker::Object::Trustee;
-
 use 5.006; use strict; use warnings;
 
-use Carp;
-
-use Class::Maker;
-
-use Verify qw( verify assess );
-
 our $VERSION = '0.002';
+
+package Trustee;
+
+use Data::Verify qw( verify assess );
 
 Class::Maker::class
 {
@@ -109,7 +105,7 @@ __END__
 
 =head1 NAME
 
-Object::Trustee - An persistance storage specialized on objects
+Trustee - An persistance storage specialized on objects
 
 =head1 SYNOPSIS
 

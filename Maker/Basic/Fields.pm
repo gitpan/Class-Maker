@@ -18,7 +18,7 @@ sub configure
 	{
 		$explicit = $args->{explicit};
 
-		carp "EXPLICIT $explicit" if $DEBUG;
+		::carp "EXPLICIT $explicit" if $DEBUG;
 	}
 
 	# dtor is missing here
@@ -84,7 +84,7 @@ sub default
 
 	foreach my $attr ( keys %$args )
 	{
-		carp "\tsetting default for $attr..\n" if $DEBUG;
+		::carp "\tsetting default for $attr..\n" if $DEBUG;
 	}
 }
 
@@ -103,7 +103,7 @@ sub attribute
 
 		foreach my $type ( keys %$args )
 		{
-			carp "\tkey: $type\n" if $DEBUG;
+			::carp "\tkey: $type\n" if $DEBUG;
 
 			my @attributes = ( ref( $args->{$type} ) eq 'HASH' ) ? keys %{$args->{$type}} : @{ $args->{$type} };
 
@@ -185,7 +185,7 @@ sub automethod
 
 	my $reflex = shift;
 
-	carp join( ',', @$args ), "\n" if $DEBUG;
+	::carp join( ',', @$args ), "\n" if $DEBUG;
 }
 
 sub has
@@ -196,7 +196,7 @@ sub has
 
 	foreach ( keys %$args )
 	{
-		carp "\tkey: $_\n" if $DEBUG;
+		::carp "\tkey: $_\n" if $DEBUG;
 	}
 }
 

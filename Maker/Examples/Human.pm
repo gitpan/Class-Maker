@@ -1,6 +1,8 @@
 our $VERSION = '0.002';
 
-Class::Maker::class Human,
+package Human;
+
+Class::Maker::class
 {
 	version => $VERSION,
 
@@ -8,7 +10,15 @@ Class::Maker::class Human,
 	{
 		int => [qw(age)],
 
-		string => [qw(coutrycode postalcode firstname lastname sex eye_color hair_color occupation city region street telefon fax)],
+		string =>
+		[
+			qw(coutrycode postalcode firstname lastname sex eye_color),
+
+			qw(hair_color occupation city region street telefon fax)
+		],
+
+			# look how driverslicense has the <> syntax and therefore becomes
+			# private (_driverslicense)
 
 		time => [qw(birth <driverslicense> dead)],
 
@@ -31,7 +41,7 @@ Class::Maker::class Human,
 	},
 };
 
-sub Human::_preinit
+sub _preinit
 {
 	my $this = shift;
 
@@ -40,7 +50,7 @@ sub Human::_preinit
 		@$this{ qw(birthday) } = qw(NULL);
 }
 
-sub Human::_postinit
+sub _postinit
 {
 	my $this = shift;
 

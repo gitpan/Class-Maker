@@ -1,21 +1,16 @@
-package Class::Maker::Object::Expirable;
+package Expirable;
 
 our $VERSION = '0.02';
 
 require 5.005_62; use strict; use warnings;
 
-use Class::Maker;
-
 Class::Maker::class
 {
-	isa => [qw( Object::Debugable )],
-
 	attribute =>
 	{
 		string => [qw/creation expiration/],
 	}
 };
-
 
 # Preloaded methods go here.
 
@@ -118,7 +113,7 @@ None by default.
 
 =head1 AUTHOR
 
-A. U. Thor, a.u.thor@a.galaxy.far.far.away
+muenalan@cpan.org
 
 =head1 SEE ALSO
 

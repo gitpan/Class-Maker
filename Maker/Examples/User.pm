@@ -2,17 +2,23 @@ our $VERSION = '0.001';
 
 use Class::Maker::Examples::Human;
 
-Class::Maker::class 'Vehicle',
 {
-	attribute =>
+	package Vehicle;
+
+	Class::Maker::class
 	{
-		int => [qw( wheels )],
+		attribute =>
+		{
+			int => [qw( wheels )],
 
-		string => [qw( model )],
-	},
-};
+			string => [qw( model )],
+		},
+	};
+}
 
-Class::Maker::class 'User',
+package User;
+
+Class::Maker::class
 {
 	version => '0.01',
 
@@ -32,14 +38,16 @@ Class::Maker::class 'User',
 	},
 };
 
-sub User::_preinit
+sub _preinit
 {
 	my $this = shift;
 
 			@$this{qw( lastlog registered )} = qw(NULL NULL);
 }
 
-Class::Maker::class 'User::Group',
+package User::Group;
+
+Class::Maker::class
 {
 	attribute =>
 	{

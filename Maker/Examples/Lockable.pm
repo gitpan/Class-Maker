@@ -1,17 +1,11 @@
-package Class::Maker::Object::Lockable;
+package Lockable;
 
 our $VERSION = '0.03';
 
-our $DEBUG;
-
 require 5.005_62; use strict; use warnings;
-
-use Class::Maker;
 
 Class::Maker::class
 {
-	isa => [qw( Object::Debugable )],
-
 	attribute =>
 	{
 		bool => [ qw( locked blocked ) ],
@@ -21,10 +15,6 @@ Class::Maker::class
 		string => [ qw( passkey unlockkey ) ],
 	},
 };
-
-use Carp;
-
-# Preloaded methods go here.
 
 sub _preinit
 {
@@ -45,7 +35,7 @@ sub lock
 {
 	my $this = shift;
 
-		carp 'Closing lock' if $DEBUG;
+		::carp 'Closing lock' if $Class::Maker::DEBUG;
 
 return $this->locked(1);
 }
@@ -54,7 +44,7 @@ sub block
 {
 	my $this = shift;
 
-		carp 'Blocking lock!' if $DEBUG;
+		::carp 'Blocking lock!' if $Class::Maker::DEBUG;
 
 return $this->blocked(1);
 }
@@ -63,11 +53,11 @@ sub unlock
 {
 	my $this = shift;
 
-		carp 'Opening lock' if $DEBUG;
+		::carp 'Opening lock' if $Class::Maker::DEBUG;
 
 		if( $this->blocked )
 		{
-			carp 'Cant unlock, because blocked !' if $DEBUG;
+			::carp 'Cant unlock, because blocked !' if $Class::Maker::DEBUG;
 
 			return $this->locked(1);
 		}
@@ -79,7 +69,7 @@ sub unblock
 {
 	my $this = shift;
 
-		carp 'Unblocking lock' if $DEBUG;
+		::carp 'Unblocking lock' if $Class::Maker::DEBUG;
 
 return $this->blocked(0);
 }
@@ -90,24 +80,24 @@ sub try
 
 	my %args = @_;
 
-		carp 'Try lock' if $DEBUG;
+		::carp 'Try lock' if $Class::Maker::DEBUG;
 
 		if( $this->blocked )
 		{
-			carp 'Try failed - Lock is blocked !' if $DEBUG;
+			::carp 'Try failed - Lock is blocked !' if $Class::Maker::DEBUG;
 
 			return $this->locked;
 		}
 
 		if( $this->unlockkey )
 		{
-			carp 'Require Key' if $DEBUG;
+			::carp 'Require Key' if $Class::Maker::DEBUG;
 
 			if( exists $args{KEY} )
 			{
 				if( $this->passkey eq $args{KEY} )
 				{
-					carp sprintf "Opening with key '%s'", $args{KEY} if $DEBUG;
+					::carp sprintf "Opening with key '%s'", $args{KEY} if $Class::Maker::DEBUG;
 
 					$this->unlock;
 				}
@@ -153,11 +143,10 @@ sub assert
 
 1;
 __END__
-# Below is stub documentation for your module. You better edit it!
 
 =head1 NAME
 
-Object::Lockable - Perl extension for blah blah blah
+Lockable - Perl extension for blah blah blah
 
 =head1 SYNOPSIS
 
@@ -211,10 +200,9 @@ $lock->debugDump();
 
 None by default.
 
-
 =head1 AUTHOR
 
-A. U. Thor, a.u.thor@a.galaxy.far.far.away
+muenalan@cpan.org
 
 =head1 SEE ALSO
 

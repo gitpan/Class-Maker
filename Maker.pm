@@ -6,15 +6,15 @@
 #
 # it and/or modify it under the same terms as Perl itself.
 
-package Class::Maker;
-
-our $VERSION = '0.05_01';
+our $VERSION = '0.05_02';
 
 require 5.005_62; use strict; use warnings;
 
-use attributes ();
-
 use Carp;
+
+package Class::Maker;
+
+use attributes ();
 
 use Class::Maker::Basic::Constructor;
 
@@ -87,7 +87,7 @@ sub class_import
 
 	$cpkg = $class;
 
-	carp "Package: $pkg (caller $class)" if $DEBUG;
+	::carp "Package: $pkg (caller $class)" if $DEBUG;
 
 		# init class 'cause somebody could give an empty parameter
 		# list for abstract classes
@@ -98,7 +98,7 @@ sub class_import
 
 	foreach my $arg ( @args )
 	{
-		carp "Import: $arg" if $DEBUG;
+		::carp "Import: $arg" if $DEBUG;
 
 		if( ref($arg) eq 'HASH' )
 		{
@@ -134,7 +134,7 @@ sub _get_code
 
 		debug_verbose => sub
 		{
-			carp "'$name' works..." if $DEBUG;
+			::carp "'$name' works..." if $DEBUG;
 		},
 
 		default => sub : lvalue
@@ -201,7 +201,7 @@ sub _make_method
 
 		my $varname = "${pkg}::$name";
 
-		carp "func: $varname\n" if $DEBUG;
+		::carp "func: $varname\n" if $DEBUG;
 
 		*{ $varname } = _get_code( $method_type, $name ) unless defined *{ $varname }{CODE};
 }

@@ -79,7 +79,7 @@ sub new
 
 		# inheriting attributes here
 
-		carp sprintf "NEW TRAVERSING ISA: %s", join( ', ', @{ inheritance_isa( ref( $this ) ) } ) if $DEBUG;
+		::carp sprintf "NEW TRAVERSING ISA: %s", join( ', ', @{ inheritance_isa( ref( $this ) ) } ) if $DEBUG;
 
 		foreach my $parent ( @{ inheritance_isa( ref( $this ) || die ) } )
 		{
@@ -170,7 +170,7 @@ sub _isa_tree
 
 		push @{ $list->{$level} }, $child;
 
-		carp sprintf "\@%s::ISA = qw(%s);",$child , join( ' ', @parents ) if $DEBUG;
+		::carp sprintf "\@%s::ISA = qw(%s);",$child , join( ' ', @parents ) if $DEBUG;
 
 		_isa_tree( $list, $level, @parents );
 
@@ -199,7 +199,7 @@ return $list;
 
 sub inheritance_isa
 {
-	carp sprintf "SCANNING ISA FOR (%s);", join( ', ', @_ ) if $DEBUG;
+	::carp sprintf "SCANNING ISA FOR (%s);", join( ', ', @_ ) if $DEBUG;
 
 	my $construct_list = isa_tree( @_ );
 

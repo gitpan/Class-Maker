@@ -3,7 +3,7 @@ require 5.005_62; use strict; use warnings;
 our $VERSION = '0.02';
 
 {
-	package Class::Maker::Examples::Obsessor::Event;
+	package Obsessor::Event;
 
 	Class::Maker::class
 	{
@@ -23,7 +23,7 @@ our $VERSION = '0.02';
 	}
 }
 
-package Class::Maker::Examples::Obsessor;
+package Obsessor;
 
 Class::Maker::class
 {
@@ -34,7 +34,7 @@ Class::Maker::class
 
 	private =>
 	{
-		ref => { target => 'UNIVERSAL', event => 'Class::Maker::Examples::Obsessor::Event' },
+		ref => { target => 'UNIVERSAL', event => 'Obsessor::Event' },
 	},
 };
 
@@ -46,7 +46,7 @@ sub _preinit
 
 		$this->_target( undef );
 
-		$this->_event( Class::Maker::Examples::Obsessor::Event->new() )
+		$this->_event( Obsessor::Event->new() )
 }
 
 sub _postinit
@@ -121,7 +121,7 @@ __END__
 
 =head1 NAME
 
-Class::Maker::Examples::Obsessor - methodcall dispatcher/forwarder
+Obsessor - methodcall dispatcher/forwarder
 
 =head1 SYNOPSIS
 
@@ -133,7 +133,7 @@ Class::Maker::Examples::Obsessor - methodcall dispatcher/forwarder
 
 		# binding to a class (a clean object is created)
 	{
-		my $user = Class::Maker::Examples::Obsessor->new( target => 'User' );
+		my $user = Obsessor->new( target => 'User' );
 
 		$user->email( 'murat.uenalan@gmx.de' );
 
@@ -148,7 +148,7 @@ Class::Maker::Examples::Obsessor - methodcall dispatcher/forwarder
 
 		# binding to existing object
 	{
-		my $user = Class::Maker::Examples::Obsessor->new( target => new User( firstname => 'Murat', lastname => 'Uenalan' ) );
+		my $user = Obsessor->new( target => new User( firstname => 'Murat', lastname => 'Uenalan' ) );
 
 		$user->email( 'murat.uenalan@gmx.de' );
 
@@ -174,21 +174,21 @@ package Verify::Type;
 package main;
 
 	{
-		my $accesstester = new Class::Maker::Examples::Bouncer( );
+		my $accesstester = new Bouncer( );
 
-		push @{ $accesstester->tests }, new Class::Maker::Examples::Bouncer::Test( field => 'method', type => 'positivliste' );
+		push @{ $accesstester->tests }, new Bouncer::Test( field => 'method', type => 'positivliste' );
 
-		my $user = Class::Maker::Examples::Obsessor->new();
+		my $user = Obsessor->new();
 
 			# CAVE: target is an Class::Maker::Examples::Obsessor method (the only one)
 
-		$user->Class::Maker::Examples::Obsessor::target( new User( firstname => 'Murat', lastname => 'Uenalan' ) );
+		$user->Obsessor::target( new User( firstname => 'Murat', lastname => 'Uenalan' ) );
 
 		push @{ $user->bouncers }, $accesstester;
 
 			# bouncer won't reject email, firstname or lastname, because they're in the pass-list
 
-		$user->email( 'murat.uenalan@gmx.de' );
+		$user->email( 'muenalan@cpan.org' );
 
 		$user->firstname( 'Murat' );
 
@@ -219,7 +219,7 @@ None by default.
 
 =head1 AUTHOR
 
-Murat Ünalan, murat.uenalan@gmx.de
+Murat Ünalan, <muenalan@cpan.org>
 
 =head1 SEE ALSO
 

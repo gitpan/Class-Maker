@@ -1,30 +1,34 @@
 use 5.006; use strict; use warnings;
 
-use Carp;
-
 use Class::Maker;
 
-use Verify qw(verify assess);
+use Data::Verify qw(verify assess);
 
 our $VERSION = '0.011';
 
-Class::Maker::class 'Class::Maker::Examples::Bouncer::Test',
+{
+	package Bouncer::Test;
+
+	Class::Maker::class
+	{
+		attribute =>
+		{
+			string => [qw( field type )],
+		},
+	};
+}
+
+package Bouncer;
+
+Class::Maker::class
 {
 	attribute =>
 	{
-		string => [qw( field type )],
+		array => { tests => 'Bouncer::Test' },
 	},
 };
 
-Class::Maker::class 'Class::Maker::Examples::Bouncer',
-{
-	attribute =>
-	{
-		array => { tests => 'Class::Maker::Examples::Bouncer::Test' },
-	},
-};
-
-sub Object::Bouncer::inspect : method
+sub inspect : method
 {
 	my $this = shift;
 
@@ -36,7 +40,7 @@ sub Object::Bouncer::inspect : method
 		{
 			my $met = $test->field;
 
-			croak "'$met' is not a known field of ".ref($client) unless $client->can( $met );
+			::croak "'$met' is not a known field of ".ref($client) unless $client->can( $met );
 
 			unless( assess( verify( label => $met, value => $client->$met(), type => $test->type ) ) )
 			{
@@ -106,7 +110,7 @@ use Object::Bouncer;
 	}
 	else
 	{
-		carp "rejects User because of unsufficient field:", $@;
+		::carp "rejects User because of unsufficient field:", $@;
 	}
 
 None by default.

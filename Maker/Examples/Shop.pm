@@ -4,47 +4,53 @@ use Class::Maker::Basic::Reflection qw(reflect);
 
 use Class::Maker::Examples::Basket;
 
-Class::Maker::class 'SBasket',
 {
-	version => '0.001',
+	package SBasket;
 
-	isa => [qw(Basket)],
-
-	attribute =>
+	Class::Maker::class
 	{
-		getset => [qw( name )],
-	},
-};
+		version => '0.001',
 
-sub SBasket::_preinit
-{
-	my $this = shift;
+		isa => [qw(Basket)],
 
-		$this->name( 'Shopping basket' );
-}
-
-sub SBasket::_postinit
-{
-	my $this = shift;
-
-		$this->{ref($this).'::POST_INIT_CALLED'} = __LINE__;
-}
-
-sub SBasket::calc
-{
-	my $this = shift;
-
-		my $sum;
-
-		foreach my $key ( $this->get )
+		attribute =>
 		{
-			$sum += $key->price();
-		}
+			getset => [qw( name )],
+		},
+	};
 
-return $sum;
+	sub _preinit
+	{
+		my $this = shift;
+
+			$this->name( 'Shopping basket' );
+	}
+
+	sub _postinit
+	{
+		my $this = shift;
+
+			$this->{ref($this).'::POST_INIT_CALLED'} = __LINE__;
+	}
+
+	sub calc
+	{
+		my $this = shift;
+
+			my $sum;
+
+			foreach my $key ( $this->get )
+			{
+				$sum += $key->price();
+			}
+
+	return $sum;
+	}
 }
 
-class 'SItem',
+package SItem;
+
+Class::Maker::class
 {
 	attribute =>
 	{
@@ -52,7 +58,7 @@ class 'SItem',
 	},
 };
 
-sub SItem::_preinit
+sub _preinit
 {
 	my $this = shift;
 
@@ -61,7 +67,7 @@ sub SItem::_preinit
 		$this->{ref($this).'::PRE_INIT_CALLED'} = __LINE__;
 }
 
-sub SItem::_postinit
+sub _postinit
 {
 	my $this = shift;
 
