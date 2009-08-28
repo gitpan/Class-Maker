@@ -470,6 +470,10 @@ todo
 
 	$test->getopts( @ARGV );
 }
+note
+{
+   it is stupid to put it into the default field. This type of problems belongs to _preinit or _postinit or separate method !
+}
 
 todo Reflection
 {
@@ -521,4 +525,26 @@ todo
 		telefon => PHONE( german ),
 		homepage => URI( 'HTTP' ),
 	},
+}
+partial
+{
+	Already possible. Use Data::Type::Guard for explicit validation.
+}
+
+todo( USABILITY )
+{
+	add config for creating explicit accessor names:
+	
+  	  public => 
+	  {
+		string => [qw(zip homepage birth telefon)],
+	  },
+
+	would then in the code be created as <type>_<name>
+
+	   print $this->string_zip;
+
+	   print $this->string_homepage;
+
+        for example. 
 }

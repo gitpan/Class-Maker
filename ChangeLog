@@ -185,3 +185,13 @@ Revision history for Perl extension Class::Maker.
 	* Bug in lvalue attribute handler (default) fixed
 
 		because C<return $val; this doesn't work, don't say "return">
+
+	* Class::Maker::Types::Array, t/20_10_...
+
+	fixed bug in _calc( ) which caused wrong calculation of intersection() when identical/copy array elements were present in an array. 
+	Solved' by unique'ing all elements prior calculation.
+
+	amended get_where_regexp(). Now supports more flexible arguments: call methods with args.
+
+	* Documented a feature where ^[.|*] in the class name creates a subpackage but code functionality was not existant. Re-introduced that feature.
+	

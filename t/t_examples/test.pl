@@ -1,3 +1,7 @@
+
+# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
+# free software; you can redistribute it and/or modify it under the same
+# terms as perl itself
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 
