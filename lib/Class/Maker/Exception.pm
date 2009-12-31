@@ -1,10 +1,10 @@
 
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
+# (c) 2009 by Murat Uenalan. All rights reserved. Note: This program is
 # free software; you can redistribute it and/or modify it under the same
 # terms as perl itself
 package Class::Maker::Exception;
 		
-our $VERSION = '0.0.2';
+our $VERSION = "0.06";  # our $VERSION = '0.0.2';
 
 use Error qw(:try);
 

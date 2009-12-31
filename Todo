@@ -533,7 +533,7 @@ partial
 
 todo( USABILITY )
 {
-	add config for creating explicit accessor names:
+	add config for creating compound accessor names:
 	
   	  public => 
 	  {

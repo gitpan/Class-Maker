@@ -18,7 +18,7 @@ NAME
 
 VERSION
 
-  0.05.98 (Mon Jun 9 10:23:26 2008)
+  0.06 (Thu Dec 17 21:41:43 2009)
 
 DESCRIPTION
 
@@ -96,16 +96,15 @@ PREREQUISITES
   Error (0.15)
   Algorithm::FastPermute (0.05)
   Array::Compare (1.03)
+
 READON
 
   Visit the Class::Maker main documentation.
 
 CONTACT
 
-  Sourceforge <http://sf.net/projects/datatype> is hosting a project
-  dedicated to this module. And I enjoy receiving your
-  comments/suggestion/reports also via <http://rt.cpan.org> or
-  <http://testers.cpan.org>.
+  Please help to make life easier and send comments/suggestions/reports to
+  <http://rt.cpan.org> or help with <http://testers.cpan.org>.
 
 AUTHOR
 
@@ -113,7 +112,7 @@ AUTHOR
 
 COPYRIGHT/LICENSE
 
-  (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is free
+  (c) 2009 by Murat Uenalan. All rights reserved. Note: This program is free
   software; you can redistribute it and/or modify it under the same terms as
   perl itself
 

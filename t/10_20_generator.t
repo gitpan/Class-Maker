@@ -11,6 +11,8 @@ use Class::Maker;
 use Class::Maker::Generator;
 use IO::Extended qw(:all);
 
+use XML::Generator;
+
 ok(1);				# If we made it this far, we're ok.
 
 #########################
@@ -19,8 +21,6 @@ ok(1);				# If we made it this far, we're ok.
 # its man page ( perldoc Test ) for help writing this test script.
 
 printf "Current directory %s\n", Class::Maker::Generator->dir();
-
-use XML::Generator;
 
 my $xml = XML::Generator->new( escape => 'always', pretty => 4, conformance => 'strict' );
 

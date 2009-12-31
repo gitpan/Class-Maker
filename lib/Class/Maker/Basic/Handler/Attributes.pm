@@ -1,12 +1,12 @@
 
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
+# (c) 2009 by Murat Uenalan. All rights reserved. Note: This program is
 # free software; you can redistribute it and/or modify it under the same
 # terms as perl itself
 package Class::Maker::Basic::Handler::Attributes;
 
 use Class::Maker::Basic::Constructor; #qw(defaults);
 
-use Carp qw(cluck);
+our $VERSION = "0.06";
 
 our $DEBUG = 0;
 
@@ -45,7 +45,7 @@ sub debug_verbose
 	# $this->member = 'syntax' instead normal $this->member( 'syntax' );
 
 { 
-	package Class::Maker::Basic::Handler::Attributes::default;
+package Class::Maker::Basic::Handler::Attributes::default;
 
 	sub get : method
 	{
@@ -86,6 +86,9 @@ sub default
 		my $this = shift;
 
 		my $name = $name;
+
+	        warn __PACKAGE__.":".__LINE__." setting method $name" if $DEBUG;
+
 	
 			if( @_ )
 			{
@@ -101,7 +104,7 @@ sub default
 }
 
 { 
-	package Class::Maker::Basic::Handler::Attributes::array;
+package Class::Maker::Basic::Handler::Attributes::array;
 
 	use Carp;
 	
@@ -119,8 +122,10 @@ sub default
 		my $this = shift;
 
 		my $name = shift;
+
+		use Carp qw(cluck);
 		
-			Carp::cluck "Array reference expected" unless ref( $_[0] ) eq 'ARRAY';
+		cluck "Array reference expected" unless ref( $_[0] ) eq 'ARRAY';
 			
 	return @{ $this->{$name} } = @{ $_[0] };
 	}
@@ -152,6 +157,9 @@ sub array
 
 		my $name = $name;
 
+	        warn __PACKAGE__.":".__LINE__." setting method $name" if $DEBUG;
+
+
 			Class::Maker::Basic::Handler::Attributes::array::init( $this, $name, [] ) unless exists $this->{$name};
 
 			Class::Maker::Basic::Handler::Attributes::array::set( $this, $name, @_ ) if @_;
@@ -166,7 +174,7 @@ sub array
 }
 
 { 
-	package Class::Maker::Basic::Handler::Attributes::hash;
+package Class::Maker::Basic::Handler::Attributes::hash;
 	
 	use Carp;
 	
@@ -216,6 +224,8 @@ sub hash
 		my $this = shift;
 
 		my $name = $name;
+
+	        warn __PACKAGE__.":".__LINE__." setting method $name" if $DEBUG;
 
 			Class::Maker::Basic::Handler::Attributes::hash::init( $this, $name, {} ) unless exists $this->{$name};
 			

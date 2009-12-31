@@ -1,5 +1,5 @@
 
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
+# (c) 2009 by Murat Uenalan. All rights reserved. Note: This program is
 # free software; you can redistribute it and/or modify it under the same
 # terms as perl itself
 	# This package contains all classfields
@@ -7,6 +7,8 @@
 	# class, { "attr" => ..	# calls Class::Maker::fields::attr
 
 package Class::Maker::Basic::Fields;
+
+our $VERSION = "0.06";
 
 sub configure
 {

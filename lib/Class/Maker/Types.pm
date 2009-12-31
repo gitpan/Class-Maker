@@ -1,8 +1,6 @@
-
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
-# free software; you can redistribute it and/or modify it under the same
-# terms as perl itself
 package Class::Maker::Type;
+
+our $VERSION = "0.06";
 
 sub new
 {

@@ -1,7 +1,3 @@
-
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
-# free software; you can redistribute it and/or modify it under the same
-# terms as perl itself
 our $VERSION = '0.002';
 
 package Human::Group;

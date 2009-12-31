@@ -1,7 +1,3 @@
-
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
-# free software; you can redistribute it and/or modify it under the same
-# terms as perl itself
 #
 # Author:	Murat Uenalan (muenalan@cpan.org)
 #
@@ -17,7 +13,7 @@ package Class::Maker::Basic::Constructor;
 
 use Exporter;
 
-our $VERSION = '0.02';
+our $VERSION = "0.06";
 
 our @ISA = qw(Exporter);
 
@@ -28,6 +24,8 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 
 # Preloaded methods go here.
+
+our $DEBUG = 0;
 
 our @init_methods = qw( init initialize );
 
@@ -70,16 +68,11 @@ sub new
 			$class->_arginit( \@args );
 		}
 
-	use Data::Dump qw(pp);
-
-	if( scalar @args % 2 != 0 )
-	{
-	        warn "*INVALID HASH*, Odd number of args, dump =", pp @args;
-	}
-
 		%args = @args;
 		
 		my $args = \%args;
+
+		warn( "_filter_argnames" ) if $Class::Maker::DEBUG;
 
 		_filter_argnames( $args );
 
@@ -105,12 +98,12 @@ sub new
 
 			# preset all defaults
 
-		my $rfx = Class::Maker::Reflection::reflect( $class ) or die;
-
-		if( $rfx->definition )
-		{
-			_defaults( $this, $rfx->definition->{default} ) if exists $rfx->definition->{default};
-		}
+#		my $rfx = Class::Maker::Reflection::reflect( $class ) or die;
+#		if( $rfx->definition )
+#		{
+#		  warn( "init defaults" ) if $Class::Maker::DEBUG;
+#		_init_by_args( $this, $rfx->definition->{default} ) if exists $rfx->definition->{default};
+#		}
 
 			# inheriting attributes here
 
@@ -123,8 +116,34 @@ sub new
 			bless $this, $parent;
 
 			no strict 'refs';
+	
+
+
+			# before _preinit, we init from class { default => { .. } }
+
+			my $rfx = Class::Maker::Reflection::reflect( $parent ) or die;
+
+			if( defined $rfx->definition )
+			  {
+			    warn "*WARN* class default => { .. } initing from class $parent with default = ".Data::Dump::pp($rfx->definition->{default}) if $Class::Maker::DEBUG;
+
+			    _init_by_args( $this, $rfx->definition->{default}, $parent ) if exists $rfx->definition->{default};
+			  }
+			else
+			  {
+			    warn "*WARN* class default => { .. } initing failed because reflex for class $parent was not found";
+			  }
+
+
+
+
 
 			"${parent}::_preinit"->( $this, $args ) if defined *{ "${parent}::_preinit" }{CODE};
+
+
+
+
+
 
 			foreach my $init_method ( @init_methods )
 			{
@@ -133,20 +152,24 @@ sub new
 					"${parent}::${init_method}"->( $this, $args );
 
 					last;
+
+
 				}
 			}
 
-			foreach my $attr ( keys %{$args} )
-			{
-				if( defined *{ "${parent}::${attr}" }{CODE} )
-				{
-					"${parent}::${attr}"->( $this, $args->{$attr} );
 
-					delete $args->{$attr};
-				}
-			}
+			# init from new( args.. )
+
+			my @args_found = _init_by_args( $this, $args, $parent );
+
+			delete $args->{$_} for @args_found;
+
+
+
 
 			"${parent}::_postinit"->( $this, $args ) if defined *{ "${parent}::_postinit" }{CODE};
+
+
 
 			bless $this, $class;
 		}
@@ -159,6 +182,60 @@ return $this;
 }
 
 # functions
+
+sub _init_by_args
+  {
+    use Data::Dump qw(pp);
+
+    warn "_init_by_args: with args = ", Data::Dump::pp( @_ ), "\n" if $Class::Maker::DEBUG;
+
+    my $this = shift;
+
+    my $args = shift;
+
+    my $parent = shift || ref($this);
+
+    
+
+    my @result;
+
+    foreach my $attr ( keys %{$args} )
+      {	
+	my $derefer;
+
+	    $derefer = "${parent}::${attr}";
+
+	    $derefer = $attr if $attr =~ /::/;
+
+#	if( $Class::Maker::explicit )
+#	  {
+#	    $derefer = $attr;
+#	  }
+
+	no strict 'refs';
+
+	if( my $coderef = $this->can( $derefer ) )      #defined *{ $derefer  }{CODE} )
+	  {
+	    warn "_init_by_args: Setting $this default $derefer ($coderef) = ", $args->{$attr}, "\n" if $Class::Maker::DEBUG;
+
+	    $coderef->( $this, $args->{$attr} );
+
+#	    $derefer->( $this, $args->{$attr} );
+	    
+	    push @result, $attr;
+	  }
+	else
+	  {
+	  use Carp qw(cluck);
+	  cluck "*WARNING (default init failed)* method/derefer $derefer is not defined anywhere (public/private section)." if $Class::Maker::DEBUG;
+	  }
+
+      }
+
+    warn sprintf "_init_by_args finishes with this = %s", pp( $this ) if $Class::Maker::DEBUG;
+
+return @result;
+  }
 
 sub _filter_argnames
 {
@@ -185,17 +262,19 @@ sub _defaults
 
 	no strict 'refs';
 
+
 	foreach my $attr ( keys %$args )
 	{
-		if( my $coderef = $this->can( $attr ) )
-		{
-			print "Setting $this default (via coderef $coderef) $attr = ", $args->{$attr}, "\n" if $Class::Maker::DEBUG;
+#		if( my $coderef = $this->can( $attr ) )
+#		{
+#			print "Setting $this default (via coderef $coderef) $attr = ", $args->{$attr}, "\n" if $Class::Maker::DEBUG;
 
-			$coderef->( $this, $args->{$attr} );
+#			$coderef->( $this, $args->{$attr} );
 
-			#$this->$attr( $args->{$attr} );
-			#$this->{$attr} = $args->{$attr};
-		}
+#			#$this->$attr( $args->{$attr} );
+			
+	                $this->{$attr} = $args->{$attr};
+#		}
 	}
 }
 
@@ -287,12 +366,4 @@ Once this method exists in the package of the class it is called right after L<n
 
 =head3 sub _postinit : method
 
-
-=head1 CONTACT
-
-Sourceforge L<http://sf.net/projects/datatype> is hosting a project dedicated to this module. And I enjoy receiving your comments/suggestion/reports also via L<http://rt.cpan.org> or L<http://testers.cpan.org>. 
-
-=head1 AUTHOR
-
-Murat Uenalan, <muenalan@cpan.org>
-
+<& /maslib/signatures.mas:author_as_pod,  &>

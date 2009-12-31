@@ -194,4 +194,15 @@ Revision history for Perl extension Class::Maker.
 	amended get_where_regexp(). Now supports more flexible arguments: call methods with args.
 
 	* Documented a feature where ^[.|*] in the class name creates a subpackage but code functionality was not existant. Re-introduced that feature.
+
+0.5.97
+	* new( "Parent::method" => 100 ) is now working again. It checks for '::' pieces and forwards them now correctly
+	as implemented in the Basic/Constructor.pm.
+
+	* $Class::Maker::explicit is now working again. Now should be not defined on a class-basis, but globally (as early as possible). You may have a look
+	  at t/30_explicit.t for an example of the syntax. You cannot use the explicit notation in the basic new() constructor anymore, as it produces over-explicit names
+	  in the $this hash. This could be handled by testing it, but seems not feasible yet.
+	* new( ) is now handling the default => { } definitions more precise, so it inits them according to inheritance series, so that all parents default definitions are
+	  applied, while the children override the defaults of their parents. Notably, the default values are already accessible in the _preinit standard method.
+	
 	

@@ -17,7 +17,7 @@ Class::Maker - classes, reflection, schemas, serialization, attribute- and multi
 
 =head1 VERSION
 
-0.05.98 (Mon Jun  9 10:23:26 2008)
+0.06 (Thu Dec 17 21:41:43 2009)
 
 =head1 DESCRIPTION
 
@@ -121,7 +121,7 @@ Visit the L<Class::Maker> main documentation.
 
 =head1 CONTACT
 
-Sourceforge L<http://sf.net/projects/datatype> is hosting a project dedicated to this module. And I enjoy receiving your comments/suggestion/reports also via L<http://rt.cpan.org> or L<http://testers.cpan.org>. 
+Please help to make life easier and send comments/suggestions/reports to L<http://rt.cpan.org> or help with L<http://testers.cpan.org>. 
 
 =head1 AUTHOR
 
@@ -130,7 +130,7 @@ Murat Uenalan, <muenalan@cpan.org>
 
 =head1 COPYRIGHT/LICENSE
 
-(c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
+(c) 2009 by Murat Uenalan. All rights reserved. Note: This program is
 free software; you can redistribute it and/or modify it under the same
 terms as perl itself
 

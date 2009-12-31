@@ -36,7 +36,6 @@ lib/Class/Maker/Types.pm
 lib/Class/Maker/Types/Array.pm
 Makefile.PL
 MANIFEST
-out.1
 publish.bat
 publish.pl
 publish.sh
@@ -51,6 +50,8 @@ t/10_20_generator.t
 t/10_80_attribute_handlers.t
 t/10_90_exception.t
 t/20_10_basic_types_array.t
+t/30_10_explicit.t
+t/30_20_default_initing.t
 t/Class-Maker.t
 t/dont/01_si.t
 t/dont/03_array_class.t
@@ -71,5 +72,6 @@ t/t_examples/test.pl
 t/t_schema/02_tangram.t
 t/t_schema/test.pl
 t/test.t
+test_custom_method_handler_override.pl
 Todo
 META.yml                                 Module meta-data (added by MakeMaker)

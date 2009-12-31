@@ -1,7 +1,3 @@
-
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
-# free software; you can redistribute it and/or modify it under the same
-# terms as perl itself
 # Author: Murat Uenalan (muenalan@cpan.org)
 #
 # Copyright (c) 2001 Murat Uenalan. All rights reserved.
@@ -14,11 +10,15 @@ package Class::Maker;
 
 	require 5.005_62; use strict; use warnings;
 	
-	our $VERSION = "0.05.98";
+	no warnings 'once';
+
+	our $VERSION = "0.06";
 	
 	use Class::Maker::Basic::Handler::Attributes;
 	
 	use Class::Maker::Basic::Fields;
+
+	use Carp qw(cluck);
 	
 	use Exporter;
 	
@@ -145,6 +145,8 @@ package Class::Maker;
 
 package Class::Maker::Reflex;		# returned by Class::Maker::Reflection::reflect
 
+	no warnings 'once';
+
 	sub definition : method
 	{
 		my $this = shift;
@@ -162,6 +164,8 @@ package Class::Maker::Reflex;		# returned by Class::Maker::Reflection::reflect
 	}
 
 package Class::Maker::Reflection;
+
+	no warnings 'once';
 
 	our $DEBUG = $Class::Maker::DEBUG;
 
@@ -593,7 +597,9 @@ These keys are 'type-identifiers' (no fear, its simple), which help you to sort 
     _anthing_here_ => ..    
    }
 
-Because b<array> and b<hash> are internally decleared and creating special mutators/handlers they will be not create scalar handlers, but 'scalar' and '_anything_here' will create scalara mutators, as they are forwarded to the default scalar handlers; both are internally not explicitly defined. The mechanism is extendable, see L<Class::Maker::Basic::Fields>.
+Because b<array> and b<hash> are internally decleared and creating special mutators/handlers they will be not create scalar handlers, 
+but 'scalar' and '_anything_here' will create scalara mutators, as they are forwarded to the default scalar handlers; both are internally not explicitly defined. 
+The mechanism is extendable, see L<Class::Maker::Basic::Fields>.
 
 =head3 private => href
 
@@ -640,15 +646,6 @@ Could be used for database objects. So you would use
 to create an AnyClass object.
 
 PS. Class::Maker provides a very sophisticated default constructor that does a lot (including the inhertance issues) and is explained somewhere else.
-
-b) explicit: Internally an instance of a class hold all properties/attributes in an hash (The object is blessed with a hash-ref). The keys are normally exactly the same as you declare in the descriptors. But when you do inheritance, you may have name clashes if a parent object uses the same name for property. To compensate that problem, set explicit to something true (i.e. 1). This will lead to internal prepending of the classname to the key name:
-
-'A' inherits 'B'. Both have a 'name' property. With explicit internally the fields are distinct:
-
- A::name
- B::name
-
-[Note] This does not collide with attribute-overloading/inheritance ! Because the first attribute-handler in the isa-tree is always called. You do not have to care for this. Only use this feature, if you have fear that name clashes could appear, beside overloading. Per default it is turned off, because i suppose that most class designers care for name clashes themselfs.
 
 c) I<private>: Prefix string (default '_') for private functions can be changed with this.
 
@@ -701,6 +698,27 @@ For example the tangram-schema generator looks for an 'abstract' key, to handle 
  },
 
 You can read more about Persistance under the L<Class::Maker::Extension::Persistance> manpage.
+
+=head1 Global flags
+
+=head2 $Class::Maker::explicit
+
+Internally an instance of a class holds all properties/attributes in an hash (The object is blessed with a hash-ref). The keys are normally 
+exactly the same as you declare in the descriptors. In special cases you want inheritance per se, but still might be interested to call parent methods explicitly. Put another way,
+when you use 'soft' inheritance, you may have name clashes if a parent object uses the same name for a property as its child.
+To compensate that problem, set this global (very early in your program, best is BEGIN block) explicit to something true (i.e. 1). This will lead to internal prepending of the classname to the key name:
+
+BEGIN
+  {
+	$Class::Maker::explicit = 1;
+  }
+
+'A' inherits 'B'. Both have a 'name' property. With explicit internally the fields are distinct:
+
+ A::name
+ B::name
+
+[Note] This does not collide with attribute-overloading/inheritance ! Because the first attribute-handler in the isa-tree is always called. You do not have to care for this. Only use this feature, if you have fear that name clashes could appear, beside overloading. Per default it is turned off, because i suppose that most class designers care for name clashes themselfs.
 
 =head1 INTERNALS
 
@@ -773,7 +791,8 @@ it creates the complete tangram schema tree (Tangram users know how hard it is
 
 =head1 PERFORMANCE
 
-I never benchmarked Class::Maker. Because the internal representation is just the same as for standard perl-classes, only a minimal delay in the constructor (during scan through the class hirarchy for _init() routines) should be apparent.
+I never seriously benchmarked Class::Maker. Because the internal representation is just the same as for standard perl-classes, only a minimal delay in the constructor (during scan through the class hirarchy for _init() routines) should be apparent. Beware that the accessors for any member of course delay the processsing (wildly guessed to be 3x slower). There is a hack-ish way to circumvent this, and may, increase speed when required:
+	- directly going into the object gut with $this->{member}. Beware that the member can be hidden as ->{SUPERCLASS::member}.
 
 =head1 EXAMPLES
 
@@ -797,15 +816,7 @@ Class::Maker::class 'Person',
 
 isa => [qw( )] isnt in sync with @ISA. When @ISA (or isa) is modified after initation, the $reflex->{isa} will only represent the state during object initiation.
 
-
-=head1 CONTACT
-
-Sourceforge L<http://sf.net/projects/datatype> is hosting a project dedicated to this module. And I enjoy receiving your comments/suggestion/reports also via L<http://rt.cpan.org> or L<http://testers.cpan.org>. 
-
-=head1 AUTHOR
-
-Murat Uenalan, <muenalan@cpan.org>
-
+<& /maslib/signatures.mas:author_as_pod,  &>
 
 Contributions (Ideas or Code):
 

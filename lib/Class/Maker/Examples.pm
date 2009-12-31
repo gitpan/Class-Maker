@@ -1,8 +1,4 @@
 
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
-# free software; you can redistribute it and/or modify it under the same
-# terms as perl itself
-
 $VERSION = '0.01.02';
 
 use Class::Maker::Examples::Array;

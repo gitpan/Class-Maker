@@ -1,10 +1,6 @@
-
-# (c) 2008 by Murat Uenalan. All rights reserved. Note: This program is
-# free software; you can redistribute it and/or modify it under the same
-# terms as perl itself
 package Class::Maker::Types::Array;
 
-our $VERSION = '0.1.5';
+our $VERSION = "0.06";
 
 use Array::Compare;
 
@@ -78,7 +74,7 @@ sub _gen
 return Class::Maker::Types::Array->new( array => \@_ );
 }
 
-sub at : method
+sub at : lvalue method
 {
 	my $this = shift;
 
@@ -148,21 +144,9 @@ sub pick : method
 
 		my @result;
 
-		my $cnt=1;
+		my $cnt;
 
-		for( @{ $this->_array } )
-		{
-#		     warn "PICKING $_, $cnt = pick ? ", ( $cnt % $step ) == 0;
-
-		     if( ( $cnt % $step ) == 0 )
-		     {			
-#		        warn " => PICKED $_";
-
-		     	push @result, $_;
-		     }
-
-		     $cnt++;
-		}				
+		map { push @result, $_ unless $cnt++ % $step } @{ $this->_array };
 
 return Class::Maker::Types::Array->new( array => \@result );
 }
@@ -223,7 +207,6 @@ sub rand : method
 return $this;
 }
 
-
 sub warp : method
 {
 	my $this = shift;
@@ -249,6 +232,14 @@ sub warp : method
 
 return Class::Maker::Types::Array->new( array => \@result, keys => \@result_keys );
 }
+
+# subset( @indices )
+
+sub subset : method
+  {
+    warp( @_ );
+  }
+
 
 sub _algebra
 {
